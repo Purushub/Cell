@@ -1248,23 +1248,43 @@ const VoiceEngine = (function(){
   let currentAudio = null;
   const audioCache = new Map();
 
+  // Curated ElevenLabs voice ID defaults
+  const DEFAULT_VOICES = {
+    zoe: 'cgSgspJ2msm6clMCkdW9',   // Jessica (Playful, Bright & Warm)
+    kai: 'TX3LPaxmHKxFdv7VOQHJ',   // Liam (Energetic, Confident)
+    elena: 'Xb7hH8MSUJpSbSDYk0k2'  // Alice (Clear, Engaging Educator)
+  };
+
+  // Deprecated/unsupported voice IDs from previous iterations that cause 402/404 errors
+  const DEPRECATED_VOICES = new Set([
+    '21m00Tcm4TlvDq8ikWAM', 'ErXwobaYiN019PkySvjV', 'pFZP5JQG7iQjIQuC4Bku', 'EXAVITQu4vr4xnSDxMaL'
+  ]);
+
+  function getStoredVoiceId(charKey){
+    const stored = localStorage.getItem(`cfg_voice_${charKey}_eleven`);
+    if(!stored || DEPRECATED_VOICES.has(stored)){
+      return DEFAULT_VOICES[charKey];
+    }
+    return stored;
+  }
+
   // Character voice configurations with localStorage persistence
   const charConfigs = {
     zoe: {
       voiceURI: localStorage.getItem('cfg_voice_zoe_uri') || '',
-      elevenId: localStorage.getItem('cfg_voice_zoe_eleven') || 'cgSgspJ2msm6clMCkdW9', // Jessica (Playful, Bright & Warm)
+      elevenId: getStoredVoiceId('zoe'),
       pitch: parseFloat(localStorage.getItem('cfg_voice_zoe_pitch') || '1.10'),
       rate: parseFloat(localStorage.getItem('cfg_voice_zoe_rate') || '1.02')
     },
     kai: {
       voiceURI: localStorage.getItem('cfg_voice_kai_uri') || '',
-      elevenId: localStorage.getItem('cfg_voice_kai_eleven') || 'TX3LPaxmHKxFdv7VOQHJ', // Liam (Energetic, Confident)
+      elevenId: getStoredVoiceId('kai'),
       pitch: parseFloat(localStorage.getItem('cfg_voice_kai_pitch') || '1.10'),
       rate: parseFloat(localStorage.getItem('cfg_voice_kai_rate') || '1.02')
     },
     elena: {
       voiceURI: localStorage.getItem('cfg_voice_elena_uri') || '',
-      elevenId: localStorage.getItem('cfg_voice_elena_eleven') || 'Xb7hH8MSUJpSbSDYk0k2', // Alice (Clear, Engaging Educator)
+      elevenId: getStoredVoiceId('elena'),
       pitch: parseFloat(localStorage.getItem('cfg_voice_elena_pitch') || '1.02'),
       rate: parseFloat(localStorage.getItem('cfg_voice_elena_rate') || '0.94')
     }
@@ -1272,13 +1292,20 @@ const VoiceEngine = (function(){
 
   let elevenApiKey = localStorage.getItem('cfg_eleven_api_key') || 'sk_83bcb9423230cfda6826f232ee679367b7a5f7d30b1ba17f';
 
-  // Seed pre-rendered ultra-crisp ElevenLabs audio clips into cache for instant playback
+  // Seed pre-rendered ultra-crisp ElevenLabs audio clips into cache for instant zero-latency playback
   audioCache.set("cgSgspJ2msm6clMCkdW9_Hi there cadet! I'm Zoe Chen, ready to test specialized cell adaptations with you!", "assets/audio/zoe_intro.mp3");
   audioCache.set("TX3LPaxmHKxFdv7VOQHJ_Systems nominal! I'm Kai Cruz, bio-engineer. Let's optimize our cellular power stations!", "assets/audio/kai_intro.mp3");
   audioCache.set("Xb7hH8MSUJpSbSDYk0k2_Welcome to Project Cytocore, Cadet. I am Doctor Elena Vance, lead research director.", "assets/audio/elena_intro.mp3");
   audioCache.set("cgSgspJ2msm6clMCkdW9_Switching specimen matrix to 3D Plant Cell.", "assets/audio/zoe_plant_cell.mp3");
   audioCache.set("cgSgspJ2msm6clMCkdW9_Switching specimen matrix to 3D Animal Cell.", "assets/audio/zoe_animal_cell.mp3");
   audioCache.set("Xb7hH8MSUJpSbSDYk0k2_Cadet, look into the digital microscope. Every living organism in this biome is built from microscopic living units called cells.", "assets/audio/elena_welcome.mp3");
+  
+  // Pre-rendered quest transition and VN lines
+  audioCache.set("cgSgspJ2msm6clMCkdW9_All essential organelles identified! Ready to submit findings to Doctor Vance.", "assets/audio/quest_dissect_finish.mp3");
+  audioCache.set("TX3LPaxmHKxFdv7VOQHJ_All cellular stress events stabilized! Excellent factory management, cadet.", "assets/audio/quest_tycoon_finish.mp3");
+  audioCache.set("cgSgspJ2msm6clMCkdW9_All emergency missions resolved! Outstanding biological problem solving, cadet.", "assets/audio/quest_rpg_finish.mp3");
+  audioCache.set("Xb7hH8MSUJpSbSDYk0k2_Hierarchy assembly complete! You have connected cells, tissues, organs, systems, and the living organism.", "assets/audio/quest_hier_finish.mp3");
+  audioCache.set("Xb7hH8MSUJpSbSDYk0k2_Congratulations Research Cadet! You have mastered all foundational I B Science modules. Customize your name and download your official distinction certificate.", "assets/audio/quest_cert_congrats.mp3");
 
   function loadVoices(){
     if(!synth) return;
@@ -1414,17 +1441,51 @@ const VoiceEngine = (function(){
     }
   }
 
+  function playAudioUrl(url, charKey, fallbackText=''){
+    if(currentAudio){
+      try { currentAudio.pause(); } catch(e){}
+      currentAudio = null;
+    }
+    const audio = new Audio(url);
+    currentAudio = audio;
+    setSpeakingState(true, charKey);
+    audio.onended = ()=>{ 
+      if(currentAudio === audio) currentAudio = null;
+      setSpeakingState(false, charKey); 
+    };
+    audio.onerror = ()=>{ 
+      if(currentAudio === audio) currentAudio = null;
+      setSpeakingState(false, charKey);
+      if(fallbackText){
+        speakFallback(fallbackText, charKey);
+      }
+    };
+    const playPromise = audio.play();
+    if(playPromise !== undefined){
+      playPromise.catch((err)=>{
+        console.warn('Audio play was interrupted or blocked by autoplay policy:', err);
+        if(currentAudio === audio) currentAudio = null;
+        setSpeakingState(false, charKey);
+      });
+    }
+  }
+
   async function speakElevenLabs(spokenText, charKey){
     const key = elevenApiKey ? elevenApiKey.trim() : '';
     if(!key) return false;
 
     const cfg = charConfigs[charKey] || charConfigs.elena;
-    const voiceId = cfg.elevenId || 'cgSgspJ2msm6clMCkdW9';
+    let voiceId = cfg.elevenId || DEFAULT_VOICES[charKey] || 'cgSgspJ2msm6clMCkdW9';
+    if(DEPRECATED_VOICES.has(voiceId)){
+      voiceId = DEFAULT_VOICES[charKey];
+      cfg.elevenId = voiceId;
+      localStorage.setItem(`cfg_voice_${charKey}_eleven`, voiceId);
+    }
     const cacheKey = `${voiceId}_${spokenText}`;
 
     if(audioCache.has(cacheKey)){
       const cachedUrl = audioCache.get(cacheKey);
-      playAudioUrl(cachedUrl, charKey);
+      playAudioUrl(cachedUrl, charKey, spokenText);
       return true;
     }
 
@@ -1455,7 +1516,7 @@ const VoiceEngine = (function(){
       const blob = await resp.blob();
       const audioUrl = URL.createObjectURL(blob);
       audioCache.set(cacheKey, audioUrl);
-      playAudioUrl(audioUrl, charKey);
+      playAudioUrl(audioUrl, charKey, spokenText);
       return true;
     } catch(err){
       console.warn('ElevenLabs TTS error:', err);
@@ -1463,21 +1524,55 @@ const VoiceEngine = (function(){
     }
   }
 
-  function playAudioUrl(url, charKey){
-    if(currentAudio){
-      currentAudio.pause();
-      currentAudio = null;
+  function saveAllSettings(){
+    // Read and save API key
+    const apiKeyInput = document.getElementById('input-eleven-api-key');
+    if(apiKeyInput){
+      elevenApiKey = apiKeyInput.value.trim();
+      localStorage.setItem('cfg_eleven_api_key', elevenApiKey);
     }
-    const audio = new Audio(url);
-    currentAudio = audio;
-    setSpeakingState(true, charKey);
-    audio.onended = ()=>{ setSpeakingState(false, charKey); };
-    audio.onerror = ()=>{ setSpeakingState(false, charKey); };
-    audio.play().catch(()=>{ setSpeakingState(false, charKey); });
+
+    // Read and save all character voice dropdowns, pitches, rates
+    ['zoe', 'kai', 'elena'].forEach(k=>{
+      const cfg = charConfigs[k];
+      const elevenSel = document.getElementById(`eleven-select-${k}`);
+      if(elevenSel && elevenSel.value){
+        cfg.elevenId = elevenSel.value;
+        localStorage.setItem(`cfg_voice_${k}_eleven`, cfg.elevenId);
+      }
+
+      const vSel = document.getElementById(`voice-select-${k}`);
+      if(vSel){
+        cfg.voiceURI = vSel.value;
+        localStorage.setItem(`cfg_voice_${k}_uri`, cfg.voiceURI);
+      }
+
+      const pitchSld = document.getElementById(`slider-pitch-${k}`);
+      if(pitchSld){
+        cfg.pitch = parseFloat(pitchSld.value) || 1.0;
+        localStorage.setItem(`cfg_voice_${k}_pitch`, cfg.pitch.toString());
+      }
+
+      const rateSld = document.getElementById(`slider-rate-${k}`);
+      if(rateSld){
+        cfg.rate = parseFloat(rateSld.value) || 1.0;
+        localStorage.setItem(`cfg_voice_${k}_rate`, cfg.rate.toString());
+      }
+    });
+
+    const keyStatusPill = document.getElementById('eleven-key-status-pill');
+    if(keyStatusPill){
+      if(elevenApiKey && elevenApiKey.length > 10){
+        keyStatusPill.className = 'key-status-pill active';
+        keyStatusPill.innerHTML = '● ElevenLabs API Connected';
+      } else {
+        keyStatusPill.className = 'key-status-pill fallback';
+        keyStatusPill.innerHTML = '○ Browser Neural TTS Active';
+      }
+    }
   }
 
   function initSettingsUI(){
-    // Setup initial values from configs
     const apiKeyInput = document.getElementById('input-eleven-api-key');
     const apiKeyToggle = document.getElementById('btn-toggle-key-visibility');
     const keyStatusPill = document.getElementById('eleven-key-status-pill');
@@ -1559,21 +1654,21 @@ const VoiceEngine = (function(){
     if(testZoe){
       testZoe.onclick = (e)=>{
         e.stopPropagation();
-        VoiceEngine.speak("Hi there cadet! I'm Zoe Chen, ready to test specialized cell adaptations with you!", 'zoe');
+        VoiceEngine.speak("Hi there cadet! I'm Zoe Chen, ready to test specialized cell adaptations with you!", 'zoe', 'assets/audio/zoe_intro.mp3');
       };
     }
     const testKai = document.getElementById('btn-test-kai');
     if(testKai){
       testKai.onclick = (e)=>{
         e.stopPropagation();
-        VoiceEngine.speak("Systems nominal! I'm Kai Cruz, bio-engineer. Let's optimize our cellular power stations!", 'kai');
+        VoiceEngine.speak("Systems nominal! I'm Kai Cruz, bio-engineer. Let's optimize our cellular power stations!", 'kai', 'assets/audio/kai_intro.mp3');
       };
     }
     const testElena = document.getElementById('btn-test-elena');
     if(testElena){
       testElena.onclick = (e)=>{
         e.stopPropagation();
-        VoiceEngine.speak("Welcome to Project Cytocore, Cadet. I am Doctor Elena Vance, lead research director.", 'elena');
+        VoiceEngine.speak("Welcome to Project Cytocore, Cadet. I am Doctor Elena Vance, lead research director.", 'elena', 'assets/audio/elena_intro.mp3');
       };
     }
 
@@ -1586,13 +1681,32 @@ const VoiceEngine = (function(){
 
     const openVoiceModal = ()=>{
       populateVoiceDropdowns();
+      // Ensure all select elements reflect current charConfigs
+      ['zoe', 'kai', 'elena'].forEach(k=>{
+        const elSel = document.getElementById(`eleven-select-${k}`);
+        if(elSel && charConfigs[k].elevenId) elSel.value = charConfigs[k].elevenId;
+        const vSel = document.getElementById(`voice-select-${k}`);
+        if(vSel && charConfigs[k].voiceURI) vSel.value = charConfigs[k].voiceURI;
+      });
       modal.classList.add('open');
       AudioEngine.playClick();
     };
     if(openBtn && modal) openBtn.onclick = openVoiceModal;
     if(vnOpenBtn && modal) vnOpenBtn.onclick = openVoiceModal;
-    if(closeBtn && modal){ closeBtn.onclick = ()=>{ modal.classList.remove('open'); AudioEngine.playClick(); }; }
-    if(closeFooterBtn && modal){ closeFooterBtn.onclick = ()=>{ modal.classList.remove('open'); AudioEngine.playClick(); }; }
+    if(closeBtn && modal){ 
+      closeBtn.onclick = ()=>{ 
+        saveAllSettings();
+        modal.classList.remove('open'); 
+        AudioEngine.playClick(); 
+      }; 
+    }
+    if(closeFooterBtn && modal){ 
+      closeFooterBtn.onclick = ()=>{ 
+        saveAllSettings();
+        modal.classList.remove('open'); 
+        AudioEngine.playClick(); 
+      }; 
+    }
   }
 
   // Init UI when DOM is ready
@@ -1605,7 +1719,7 @@ const VoiceEngine = (function(){
       enabled = !enabled;
       if(!enabled){
         if(synth) synth.cancel();
-        if(currentAudio) currentAudio.pause();
+        if(currentAudio){ currentAudio.pause(); currentAudio = null; }
       }
       setSpeakingState(false);
       return enabled;
@@ -1613,27 +1727,45 @@ const VoiceEngine = (function(){
     isEnabled(){ return enabled; },
     stop(){
       if(synth) synth.cancel();
-      if(currentAudio) currentAudio.pause();
+      if(currentAudio){ currentAudio.pause(); currentAudio = null; }
       setSpeakingState(false);
     },
     getConfigs(){ return charConfigs; },
+    saveSettings(){ saveAllSettings(); },
     openStudio(){
       const m = document.getElementById('modal-voice-settings');
       if(m){ populateVoiceDropdowns(); m.classList.add('open'); }
     },
-    async speak(text, charKey='elena'){
+    async speak(text, charKey='elena', audioClip=null){
       if(!enabled) return;
-      if(currentAudio){ currentAudio.pause(); currentAudio = null; }
+      if(currentAudio){ 
+        try { currentAudio.pause(); } catch(e){}
+        currentAudio = null; 
+      }
       if(synth) synth.cancel();
 
       const spokenText = cleanTextForSpeech(text);
       if(!spokenText.trim()) return;
 
-      // 1. Attempt ultra-realistic ElevenLabs neural voice
+      const currentCfgVoice = (charConfigs[charKey] && charConfigs[charKey].elevenId) || DEFAULT_VOICES[charKey];
+      const isDefaultVoice = (currentCfgVoice === DEFAULT_VOICES[charKey]);
+
+      // 1. If an audio clip exists and character is on default ElevenLabs voice, play instant crisp pre-rendered audio
+      if(audioClip && isDefaultVoice){
+        playAudioUrl(audioClip, charKey, spokenText);
+        return;
+      }
+
+      // 2. Attempt ultra-realistic ElevenLabs neural voice
       const success = await speakElevenLabs(spokenText, charKey);
       if(!success){
-        // 2. Seamlessly use character-tuned natural browser voice fallback
-        speakFallback(spokenText, charKey);
+        // If an audio clip is available as backup, use it
+        if(audioClip){
+          playAudioUrl(audioClip, charKey, spokenText);
+        } else {
+          // 3. Seamlessly use character-tuned natural browser voice fallback
+          speakFallback(spokenText, charKey);
+        }
       }
     }
   };
@@ -1754,6 +1886,7 @@ const STORY_NODES = [
     speakerClass: 'elena',
     char: 'elena',
     forest: true,
+    audio: 'assets/audio/vn_forest_intro_1.mp3',
     text: "Welcome to the Ancient Temperate Forest, Cadet! Every towering tree, fern, and living animal here is constructed from microscopic building blocks: <em>Cells</em>!",
   },
   {
@@ -1762,6 +1895,7 @@ const STORY_NODES = [
     speakerClass: 'zoe',
     char: 'zoe',
     forest: true,
+    audio: 'assets/audio/vn_forest_intro_2.mp3',
     text: "I collected fresh plant leaf and animal tissue specimens with my bio-scanner! Let's examine them in 3D to see how their internal organelles differ.",
   },
   {
@@ -1770,6 +1904,7 @@ const STORY_NODES = [
     speakerClass: 'kai',
     char: 'kai',
     forest: true,
+    audio: 'assets/audio/vn_forest_intro_3.mp3',
     text: "Cells are alive like microscopic bio-factories! Let's rotate and dissect our live 3D Animal and Plant cell specimens.",
     choices: [
       { text: "Launch 3D Cell Dissection Lab", target: 'start_dissect' }
@@ -1781,6 +1916,7 @@ const STORY_NODES = [
     speakerClass: 'kai',
     char: 'kai',
     forest: false,
+    audio: 'assets/audio/vn_post_dissect.mp3',
     text: "Great job identifying those organelles! Now test your mastery in our <strong>Cellular Factory Tycoon</strong>—respond to real environmental stress events in real time!",
     choices: [
       { text: "Launch Cellular Factory Tycoon", target: 'start_tycoon' }
@@ -1792,6 +1928,7 @@ const STORY_NODES = [
     speakerClass: 'zoe',
     char: 'zoe',
     forest: false,
+    audio: 'assets/audio/vn_post_tycoon.mp3',
     text: "You balanced the cell's energy and turgor perfectly! Now let's explore <strong>Specialised Cells</strong> with custom 3D adaptations for specialized jobs.",
     choices: [
       { text: "Open Specialised Cell RPG Deck", target: 'start_rpg' }
@@ -1803,6 +1940,7 @@ const STORY_NODES = [
     speakerClass: 'elena',
     char: 'elena',
     forest: false,
+    audio: 'assets/audio/vn_post_rpg.mp3',
     text: "Structure strictly follows function! Now let's connect specialized cells into complete hierarchical biological systems in our <strong>3D Body Hologram</strong>.",
     choices: [
       { text: "Start '3D Body Hierarchy Assembly'", target: 'start_hierarchy' }
@@ -1814,6 +1952,7 @@ const STORY_NODES = [
     speakerClass: 'elena',
     char: 'elena',
     forest: true,
+    audio: 'assets/audio/vn_post_hierarchy.mp3',
     text: "Outstanding work, Cadet! You have mastered cell biology from individual organelles to the entire living multicellular organism.",
     choices: [
       { text: "Review Findings & Generate IB Bio-Certificate", target: 'start_certificate' }
@@ -1892,8 +2031,8 @@ const VN = (function(){
     historyLog.push({ speaker: node.speaker, text: fullText });
     updateLogView();
 
-    // Trigger natural character voice synthesis
-    VoiceEngine.speak(node.text, node.char || 'elena');
+    // Trigger natural character voice synthesis (with pre-rendered ElevenLabs asset support)
+    VoiceEngine.speak(node.text, node.char || 'elena', node.audio || null);
 
     typeTimer = setInterval(()=>{
       if(charIndex < fullText.length){
@@ -1981,7 +2120,7 @@ const VN = (function(){
     speakBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       if(currentNode){
-        VoiceEngine.speak(currentNode.text, currentNode.char || 'elena');
+        VoiceEngine.speak(currentNode.text, currentNode.char || 'elena', currentNode.audio || null);
       }
     });
   }
@@ -2548,7 +2687,7 @@ const ActivityDissection = (function(){
     document.getElementById('btn-finish-dissect').addEventListener('click', ()=>{
       AudioEngine.playSuccess();
       VN.react('happy');
-      VoiceEngine.speak("All essential organelles identified! Ready to submit findings to Dr. Vance.", 'zoe');
+      VoiceEngine.speak("All essential organelles identified! Ready to submit findings to Dr. Vance.", 'zoe', 'assets/audio/quest_dissect_finish.mp3');
       document.getElementById('act-screen-dissection').classList.remove('active');
       VN.resume('post_dissect');
     });
@@ -2659,7 +2798,7 @@ const ActivityTycoon = (function(){
     if(round >= EVENTS.length){
       AudioEngine.playSuccess();
       VN.react('happy');
-      VoiceEngine.speak("All cellular stress events stabilized! Excellent factory management, cadet.", 'kai');
+      VoiceEngine.speak("All cellular stress events stabilized! Excellent factory management, cadet.", 'kai', 'assets/audio/quest_tycoon_finish.mp3');
       document.getElementById('act-screen-tycoon').classList.remove('active');
       VN.resume('post_tycoon');
       return;
@@ -2941,7 +3080,7 @@ const ActivityRPG = (function(){
     if(currentMissionIdx >= RPG_MISSIONS.length){
       AudioEngine.playSuccess();
       VN.react('happy');
-      VoiceEngine.speak("All emergency missions resolved! Outstanding biological problem solving, cadet.", 'zoe');
+      VoiceEngine.speak("All emergency missions resolved! Outstanding biological problem solving, cadet.", 'zoe', 'assets/audio/quest_rpg_finish.mp3');
       document.getElementById('act-screen-rpg').classList.remove('active');
       VN.resume('post_rpg');
       return;
@@ -3667,7 +3806,7 @@ const ActivityHierarchy = (function(){
   document.getElementById('btn-complete-hier-mission').addEventListener('click', ()=>{
     AudioEngine.playSuccess();
     VN.react('happy');
-    VoiceEngine.speak("Hierarchy assembly complete! You have connected cells, tissues, organs, systems, and the living organism.", 'elena');
+    VoiceEngine.speak("Hierarchy assembly complete! You have connected cells, tissues, organs, systems, and the living organism.", 'elena', 'assets/audio/quest_hier_finish.mp3');
     document.getElementById('act-screen-hierarchy').classList.remove('active');
     VN.resume('post_hierarchy');
   });
@@ -3926,7 +4065,7 @@ const ActivityCertificate = (function(){
       document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
       document.getElementById('act-screen-certificate').classList.add('active');
       AudioEngine.playSuccess();
-      VoiceEngine.speak("Congratulations Research Cadet! You have mastered all foundational IB Science modules. Customize your name and download your official distinction certificate.", 'elena');
+      VoiceEngine.speak("Congratulations Research Cadet! You have mastered all foundational IB Science modules. Customize your name and download your official distinction certificate.", 'elena', 'assets/audio/quest_cert_congrats.mp3');
 
       const dlBtn = document.getElementById('btn-download-cert-png');
       if(dlBtn){
@@ -3937,6 +4076,18 @@ const ActivityCertificate = (function(){
 })();
 
 document.getElementById('btn-restart-game').addEventListener('click', ()=>{ window.location.reload(); });
+
+// User gesture unlocker for browser audio autoplay policies
+let hasUserInteracted = false;
+function unlockAudioContext(){
+  if(hasUserInteracted) return;
+  hasUserInteracted = true;
+  AudioEngine.playClick();
+  window.removeEventListener('pointerdown', unlockAudioContext);
+  window.removeEventListener('keydown', unlockAudioContext);
+}
+window.addEventListener('pointerdown', unlockAudioContext, { once: true });
+window.addEventListener('keydown', unlockAudioContext, { once: true });
 
 window.addEventListener('DOMContentLoaded', ()=>{ VN.start(); });
 </script>
