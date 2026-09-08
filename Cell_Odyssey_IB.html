@@ -1,0 +1,3930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BioQuest: The Cell Odyssey — IB Science Grade 6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+:root {
+  --bg-dark: #071210;
+  --bg-panel: rgba(13, 27, 24, 0.96);
+  --bg-card: #142824;
+  --border-line: #224740;
+  --border-bright: #3ea08e;
+  
+  --teal-prime: #2ebfa5;
+  --teal-glow: rgba(46, 191, 165, 0.4);
+  --emerald: #1fa37c;
+  --amber: #e6a13b;
+  --coral: #e26346;
+  --violet: #9b70dc;
+  --blue-sky: #4ba3e3;
+  
+  --ink-light: #f2faf7;
+  --ink-muted: #9bbab2;
+  --ink-dark: #091210;
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Work Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg-dark); color: var(--ink-light);
+  font-family: var(--font-body); -webkit-font-smoothing: antialiased;
+}
+
+#app-root {
+  position: relative; width: 100vw; height: 100vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* Background Layers */
+.bg-layer {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  transition: opacity 0.8s ease, filter 0.8s ease;
+}
+#forest-bg-layer {
+  background: url('assets/forest_bg.jpg') center/cover no-repeat;
+  opacity: 1; filter: brightness(0.85) contrast(1.05);
+}
+#forest-bg-layer.dim {
+  opacity: 0.18; filter: blur(6px) brightness(0.35);
+}
+#primary-3d-stage {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+}
+#primary-canvas { width: 100%; height: 100%; display: block; }
+#ambient-fx-canvas { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+
+/* Top Navigation Header */
+.top-nav {
+  position: relative; z-index: 35;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, rgba(7,18,16,0.96) 0%, rgba(7,18,16,0.7) 85%, transparent 100%);
+  border-bottom: 1px solid rgba(46,191,165,0.25);
+  backdrop-filter: blur(10px);
+}
+.brand-group { display: flex; align-items: center; gap: 14px; }
+.station-badge {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--teal-prime); background: rgba(46,191,165,0.15);
+  border: 1px solid var(--teal-prime); border-radius: 4px; padding: 4px 10px;
+}
+.game-title {
+  font-family: var(--font-display); font-size: 19px; font-weight: 600;
+  color: var(--ink-light); letter-spacing: -0.01em;
+}
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.nav-btn {
+  font-family: var(--font-body); font-size: 13px; font-weight: 600;
+  color: var(--ink-muted); background: var(--bg-panel);
+  border: 1px solid var(--border-line); border-radius: 6px;
+  padding: 6px 14px; cursor: pointer; transition: all 0.15s ease;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-btn:hover {
+  color: var(--ink-light); border-color: var(--teal-prime);
+  background: var(--bg-card); transform: translateY(-1px);
+}
+
+/* ================= VN DIALOGUE & ANIME CHARACTER SYSTEM ================= */
+.vn-container {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  width: min(1060px, 94vw); z-index: 30;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: auto;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vn-container.activity-mode {
+  left: 20px; bottom: 16px; transform: none; width: 320px;
+}
+.vn-container.activity-mode .dialogue-box {
+  padding: 12px 16px; border-radius: 10px;
+}
+.vn-container.activity-mode .dialogue-text {
+  font-size: 13px; line-height: 1.45; min-height: 38px;
+}
+.vn-container.activity-mode .anime-avatar-frame {
+  width: 120px; height: 160px;
+}
+.vn-container.activity-mode .dialogue-controls {
+  margin-top: 6px; padding-top: 6px;
+}
+
+.vn-container.collapsed {
+  transform: translate(-50%, calc(100% - 32px)) scale(0.95); opacity: 0.2; pointer-events: auto;
+}
+.vn-container.activity-mode.collapsed {
+  transform: translateY(calc(100% - 36px)); opacity: 0.85; width: 220px;
+}
+.vn-container.collapsed:hover { opacity: 1; }
+
+.vn-character-stage {
+  position: absolute; bottom: calc(100% - 15px); left: 24px;
+  display: flex; align-items: flex-end; pointer-events: none;
+  z-index: 29; transition: all 0.3s ease;
+}
+
+.anime-avatar-frame {
+  position: relative; width: 220px; height: 300px;
+  filter: drop-shadow(0 12px 32px rgba(0,0,0,0.8));
+  transform-origin: bottom center;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.anime-avatar-frame.speaking {
+  animation: avatarTalk 0.28s ease-in-out infinite alternate;
+}
+@keyframes avatarTalk {
+  0% { transform: scale(1) translateY(0); filter: drop-shadow(0 12px 32px rgba(0,0,0,0.8)) drop-shadow(0 0 8px rgba(46,191,165,0.4)); }
+  100% { transform: scale(1.025) translateY(-5px); filter: drop-shadow(0 14px 36px rgba(0,0,0,0.9)) drop-shadow(0 0 16px rgba(46,191,165,0.8)); }
+}
+.anime-avatar-frame img {
+  width: 100%; height: 100%; object-fit: cover; object-position: top center;
+  border-radius: 16px 16px 0 0;
+  border: 2px solid var(--border-bright); border-bottom: none;
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+}
+
+.emote-bubble {
+  position: absolute; top: -10px; right: -10px;
+  background: #ffffff; color: #12332e; font-weight: 800; font-size: 13px;
+  padding: 4px 10px; border-radius: 20px; border: 2px solid var(--amber);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4); opacity: 0; transform: scale(0.5);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none; z-index: 50;
+}
+.emote-bubble.show {
+  opacity: 1; transform: scale(1) translateY(-6px);
+}
+
+.dialogue-box {
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-bright); border-radius: 12px;
+  padding: 20px 24px 16px; position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.dialogue-header-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.speaker-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 14px; border-radius: 6px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.speaker-tag.elena { background: #136052; border: 1px solid #2ebfa5; }
+.speaker-tag.kai { background: #964a17; border: 1px solid #e6a13b; }
+.speaker-tag.zoe { background: #553488; border: 1px solid #9d7ad9; }
+.speaker-tag.cadet { background: #354a45; border: 1px solid #5a8077; }
+
+.dialogue-toggle-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  color: var(--ink-light); font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 4px; cursor: pointer;
+}
+.dialogue-toggle-btn:hover { background: var(--teal-prime); color: var(--ink-dark); }
+
+.dialogue-text {
+  font-size: 15.5px; line-height: 1.55; color: var(--ink-light);
+  min-height: 48px; font-weight: 400; margin-top: 4px;
+}
+.dialogue-text em { color: var(--teal-prime); font-style: normal; font-weight: 600; }
+.dialogue-text strong { color: var(--amber); font-weight: 600; }
+
+.dialogue-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);
+}
+.dialogue-hints { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted); }
+.dialogue-btns { display: flex; gap: 8px; }
+.dialogue-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+  color: var(--ink-light); font-size: 12px; font-weight: 600;
+  padding: 5px 12px; border-radius: 4px; cursor: pointer;
+  transition: all 0.15s ease; display: flex; align-items: center; gap: 5px;
+}
+.dialogue-btn:hover {
+  background: var(--teal-prime); color: var(--ink-dark); border-color: var(--teal-prime);
+}
+
+.choice-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.choice-btn {
+  background: linear-gradient(90deg, rgba(20,40,36,0.95) 0%, rgba(30,59,55,0.95) 100%);
+  border: 1px solid var(--border-bright); border-radius: 8px;
+  padding: 11px 18px; color: var(--ink-light); font-size: 14px;
+  font-weight: 500; text-align: left; cursor: pointer;
+  transition: all 0.15s ease; display: flex; align-items: center; justify-content: space-between;
+}
+.choice-btn:hover {
+  border-color: var(--teal-prime); background: rgba(46,191,165,0.2);
+  transform: translateX(4px);
+}
+.choice-btn .choice-arrow { color: var(--teal-prime); font-weight: 700; }
+
+/* ================= ACTIVITY SCREENS ================= */
+.activity-screen {
+  position: absolute; inset: 0; z-index: 20;
+  display: none; pointer-events: auto;
+  background: rgba(7, 18, 16, 0.88); backdrop-filter: blur(8px);
+}
+.activity-screen.active { display: flex; }
+
+.activity-layout {
+  width: 100%; height: 100%; display: grid;
+  grid-template-columns: 1fr 380px; position: relative;
+}
+@media (max-width: 950px) { .activity-layout { grid-template-columns: 1fr; } }
+
+.canvas-viewport {
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  background: radial-gradient(circle at center, rgba(16,40,36,0.6) 0%, rgba(5,14,12,0.95) 100%);
+}
+.canvas-viewport canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+.canvas-viewport canvas:active { cursor: grabbing; }
+
+/* Active Specimen Top Header Banner */
+.active-specimen-banner {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 25; pointer-events: none; text-align: center;
+  background: rgba(7, 18, 16, 0.92); border: 2px solid var(--teal-prime);
+  border-radius: 12px; padding: 7px 22px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 20px rgba(46,191,165,0.3);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.active-specimen-banner.plant-mode {
+  border-color: #38d9a9;
+  background: linear-gradient(180deg, rgba(10,32,24,0.94) 0%, rgba(7,20,16,0.96) 100%);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 24px rgba(56,217,169,0.4);
+}
+.active-specimen-banner.animal-mode {
+  border-color: #e6a13b;
+  background: linear-gradient(180deg, rgba(35,22,12,0.94) 0%, rgba(18,12,8,0.96) 100%);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 24px rgba(230,161,59,0.4);
+}
+.specimen-badge-title {
+  font-family: var(--font-display); font-size: 16.5px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px; letter-spacing: 0.02em;
+}
+.active-specimen-banner.plant-mode .specimen-badge-title { color: #51cf66; }
+.active-specimen-banner.animal-mode .specimen-badge-title { color: #fcc419; }
+.specimen-subtag {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  color: var(--ink-muted); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 2px;
+}
+
+/* ElevenLabs Key Box in Voice Studio */
+.elevenlabs-key-box {
+  background: linear-gradient(135deg, rgba(20,40,36,0.92) 0%, rgba(13,27,24,0.96) 100%);
+  border: 1.5px solid var(--teal-prime); border-radius: 10px; padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+.key-status-pill {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono);
+  padding: 3px 10px; border-radius: 20px; font-weight: 700;
+}
+.key-status-pill.active {
+  background: rgba(46,191,165,0.2); color: var(--teal-prime); border: 1px solid var(--teal-prime);
+}
+.key-status-pill.fallback {
+  background: rgba(230,161,59,0.15); color: var(--amber); border: 1px solid var(--amber);
+}
+
+.viewport-toolbar {
+  position: absolute; top: 16px; left: 16px; display: flex; gap: 8px;
+  z-index: 10; flex-wrap: wrap;
+}
+.view-tag {
+  background: var(--bg-panel); border: 1px solid var(--border-bright);
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  color: var(--teal-prime); font-family: var(--font-mono);
+}
+
+.tag-3d-host {
+  position: absolute; inset: 0; pointer-events: none; z-index: 8; overflow: hidden;
+}
+.organelle-tag-label {
+  position: absolute; transform: translate(-50%, -100%);
+  font-size: 11px; font-weight: 600; color: #ffffff;
+  background: rgba(14,28,25,0.9); border: 1px solid var(--border-bright);
+  padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+  pointer-events: auto; cursor: pointer; transition: all 0.15s ease;
+}
+.organelle-tag-label:hover {
+  background: var(--teal-prime); color: var(--ink-dark); border-color: #fff;
+  transform: translate(-50%, -115%) scale(1.08);
+}
+.organelle-tag-label.selected {
+  border-color: var(--amber); background: rgba(230,161,59,0.25); color: var(--amber);
+}
+
+.activity-sidebar {
+  background: var(--bg-panel); border-left: 1px solid var(--border-line);
+  padding: 20px; display: flex; flex-direction: column; gap: 14px;
+  overflow-y: auto; z-index: 15;
+}
+.sidebar-card {
+  background: var(--bg-card); border: 1px solid var(--border-line);
+  border-radius: 8px; padding: 14px;
+}
+.sidebar-card h3 {
+  font-family: var(--font-display); font-size: 17px; color: var(--ink-light); margin-bottom: 4px;
+}
+.sidebar-card .sub-tag {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
+  color: var(--amber); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; display: block;
+}
+.sidebar-card p { font-size: 13px; line-height: 1.5; color: var(--ink-muted); }
+
+.check-item-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; margin-bottom: 4px; border-radius: 6px;
+  background: rgba(255,255,255,0.03); border: 1px solid transparent;
+  cursor: pointer; transition: all 0.15s ease; font-size: 12.5px;
+}
+.check-item-row:hover { border-color: var(--teal-prime); background: rgba(46,191,165,0.08); }
+.check-item-row.done { color: var(--teal-prime); font-weight: 600; }
+.check-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-line); }
+.check-item-row.done .check-dot { background: var(--teal-prime); }
+
+.micro-image-box {
+  width: 100%; height: 180px; border-radius: 6px; overflow: hidden;
+  border: 1px solid var(--border-bright); position: relative; margin: 8px 0; background: #000;
+}
+.micro-image-box img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Tycoon Simulator */
+.resource-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.res-meter { background: rgba(0,0,0,0.35); border: 1px solid var(--border-line); border-radius: 6px; padding: 8px 10px; }
+.res-meter-label { font-size: 11px; font-weight: 600; color: var(--ink-muted); display: flex; justify-content: space-between; margin-bottom: 5px; }
+.meter-bar-track { width: 100%; height: 7px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+.meter-bar-fill { height: 100%; width: 50%; background: var(--teal-prime); border-radius: 4px; transition: width 0.3s ease; }
+.meter-bar-fill.energy { background: var(--amber); }
+.meter-bar-fill.turgor { background: var(--blue-sky); }
+.meter-bar-fill.structure { background: var(--emerald); }
+.meter-bar-fill.protein { background: var(--violet); }
+
+.tycoon-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.organelle-action-btn {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border-bright);
+  color: var(--ink-light); padding: 9px 12px; border-radius: 6px;
+  font-size: 12.5px; font-weight: 600; text-align: left; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.15s ease;
+}
+.organelle-action-btn:hover:not(:disabled) { background: var(--teal-prime); color: var(--ink-dark); }
+.organelle-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.event-alert-card {
+  background: rgba(226,99,70,0.15); border: 1px solid var(--coral);
+  border-radius: 6px; padding: 10px 12px; margin-top: 8px;
+}
+.event-alert-title {
+  color: var(--coral); font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; margin-bottom: 4px; font-family: var(--font-mono);
+}
+.event-alert-desc { font-size: 12.5px; line-height: 1.4; color: var(--ink-light); }
+
+/* RPG Trading Card Deck with Live 3D Previews */
+/* RPG Trading Card Deck with Live 3D Previews */
+.rpg-deck-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px; padding: 20px 24px 90px; max-width: 1400px; margin: 0 auto;
+  width: 100%; overflow-y: auto;
+}
+.cell-rpg-card {
+  background: var(--bg-card); border: 1.5px solid var(--border-bright);
+  border-radius: 12px; padding: 16px; position: relative;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.cell-rpg-card:hover { transform: translateY(-4px); border-color: var(--teal-prime); box-shadow: 0 12px 32px rgba(46,191,165,0.25); }
+.cell-rpg-card.selected { border-color: var(--amber); box-shadow: 0 0 0 2px var(--amber), 0 12px 32px rgba(230,161,59,0.35); }
+
+.card-3d-preview-box {
+  width: 100%; height: 180px; background: rgba(0,0,0,0.75);
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
+  position: relative; overflow: hidden;
+}
+.card-3d-preview-box iframe { width: 100%; height: 100%; border: none; display: block; }
+.card-3d-preview-box canvas { width: 100%; height: 100%; display: block; }
+
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.card-class-tag {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 4px;
+}
+.card-class-tag.courier { background: rgba(226,99,70,0.2); color: var(--coral); }
+.card-class-tag.signal { background: rgba(75,163,227,0.2); color: var(--blue-sky); }
+.card-class-tag.harvester { background: rgba(230,161,59,0.2); color: var(--amber); }
+.card-class-tag.solar { background: rgba(31,163,124,0.2); color: var(--emerald); }
+.card-class-tag.navigator { background: rgba(140,104,205,0.2); color: var(--violet); }
+
+.card-select-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border-bright);
+  color: var(--teal-prime); padding: 3px 8px; border-radius: 12px; cursor: pointer;
+  transition: all 0.15s ease;
+}
+.card-select-pill:hover, .cell-rpg-card.selected .card-select-pill {
+  background: var(--amber); color: var(--ink-dark); border-color: var(--amber);
+}
+
+.card-sketchfab-attr {
+  font-size: 10px; color: var(--ink-muted); margin-top: -4px; line-height: 1.3;
+}
+.card-sketchfab-attr a { color: var(--teal-prime); text-decoration: none; font-weight: 600; }
+.card-sketchfab-attr a:hover { text-decoration: underline; }
+
+.card-name { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink-light); }
+.card-stat-row { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ink-muted); margin-bottom: 3px; }
+.card-stat-val { font-weight: 700; color: var(--ink-light); }
+.card-adaptation-box {
+  background: rgba(0,0,0,0.25); border-left: 3px solid var(--teal-prime);
+  padding: 6px 10px; font-size: 12px; line-height: 1.45; border-radius: 0 4px 4px 0;
+}
+
+/* ================= ACTIVITY 4: 3D ANATOMICAL BODY HIERARCHY ================= */
+.hier-layout {
+  width: 100%; height: 100%; display: grid;
+  grid-template-columns: 1fr 390px; position: relative;
+}
+@media (max-width: 950px) { .hier-layout { grid-template-columns: 1fr; } }
+
+.hier-viewport-col {
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  background: radial-gradient(circle at 45% 45%, rgba(16,46,40,0.85) 0%, rgba(5,14,12,0.98) 100%);
+}
+.hier-viewport-col canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+.hier-viewport-col canvas:active { cursor: grabbing; }
+
+.hier-top-bar {
+  position: absolute; top: 16px; left: 20px; right: 20px;
+  display: flex; justify-content: space-between; align-items: center; z-index: 10;
+  pointer-events: none;
+}
+.hier-top-bar > * { pointer-events: auto; }
+
+.hier-tier-rail {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-panel); border: 1px solid var(--border-bright);
+  padding: 6px 10px; border-radius: 30px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.hier-rail-step {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  color: var(--ink-muted); cursor: pointer; transition: all 0.15s ease;
+}
+.hier-rail-step:hover { color: var(--ink-light); background: rgba(255,255,255,0.06); }
+.hier-rail-step.active {
+  background: var(--teal-prime); color: var(--ink-dark); font-weight: 700;
+  box-shadow: 0 0 14px rgba(46,191,165,0.5);
+}
+.hier-rail-num {
+  width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid currentColor;
+  display: flex; align-items: center; justify-content: center; font-size: 10px;
+}
+
+.hier-mode-toggles {
+  display: flex; gap: 8px;
+}
+.hier-toggle-pill {
+  background: var(--bg-panel); border: 1px solid var(--border-bright);
+  color: var(--ink-light); padding: 6px 12px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: all 0.15s ease;
+}
+.hier-toggle-pill:hover { border-color: var(--teal-prime); color: var(--teal-prime); }
+.hier-toggle-pill.active { background: rgba(46,191,165,0.2); border-color: var(--teal-prime); color: var(--teal-prime); }
+
+.hier-vitals-hud {
+  position: absolute; top: 72px; left: 20px; z-index: 10;
+  background: rgba(7,20,18,0.75); border: 1px solid rgba(46,191,165,0.3);
+  border-radius: 8px; padding: 10px 14px; backdrop-filter: blur(8px);
+  font-family: var(--font-mono); font-size: 11px; color: var(--teal-prime);
+  display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+}
+.vitals-row { display: flex; justify-content: space-between; gap: 16px; }
+.vitals-val { font-weight: 700; color: #fff; }
+
+.hier-tag-host {
+  position: absolute; inset: 0; pointer-events: none; z-index: 8; overflow: hidden;
+}
+.hier-3d-tag {
+  position: absolute; transform: translate(-50%, -100%);
+  background: rgba(7,20,18,0.88); border: 1px solid var(--teal-prime);
+  padding: 4px 10px; border-radius: 6px; font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 10px rgba(46,191,165,0.4);
+  pointer-events: auto; cursor: pointer; transition: all 0.15s ease;
+}
+.hier-3d-tag:hover {
+  background: var(--teal-prime); color: var(--ink-dark); transform: translate(-50%, -105%) scale(1.05);
+}
+.hier-3d-tag::after {
+  content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+  border-width: 6px 5px 0 5px; border-style: solid;
+  border-color: var(--teal-prime) transparent transparent transparent;
+}
+
+.hier-bottom-shelf {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  width: min(840px, 92vw); z-index: 10;
+  background: var(--bg-panel); border: 1px solid var(--border-bright);
+  border-radius: 12px; padding: 12px 18px; backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+}
+.shelf-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+}
+.shelf-title {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  color: var(--amber); text-transform: uppercase;
+}
+.assembly-pool-row {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+}
+.hier-tile-btn {
+  background: var(--bg-card); border: 1px solid var(--border-line);
+  color: var(--ink-light); padding: 8px 14px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 8px; transition: all 0.15s ease;
+}
+.hier-tile-btn:hover {
+  border-color: var(--teal-prime); background: rgba(46,191,165,0.15); transform: translateY(-2px);
+}
+.hier-tile-btn.active {
+  border-color: var(--amber); background: rgba(230,161,59,0.18);
+  box-shadow: 0 0 12px rgba(230,161,59,0.4); color: #fff; font-weight: 700;
+}
+.hier-tile-btn.assembled {
+  border-color: var(--teal-prime);
+}
+.hier-tile-btn .tier-badge {
+  font-family: var(--font-mono); font-size: 10px; background: rgba(255,255,255,0.1);
+  padding: 2px 5px; border-radius: 4px; color: var(--teal-prime);
+}
+.hier-tile-btn.active .tier-badge {
+  background: var(--amber); color: var(--ink-dark);
+}
+
+/* Certificate Screen */
+.certificate-frame {
+  max-width: 760px; margin: 40px auto; background: #ffffff; color: #12332e;
+  border-radius: 12px; padding: 40px; border: 8px double #1f7a6c;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5); text-align: center;
+}
+.cert-header { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: #0f4a40; margin-bottom: 8px; }
+.cert-sub { font-size: 13.5px; color: #3f5d57; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 20px; }
+.cert-name-input {
+  font-family: var(--font-display); font-size: 26px; font-weight: 700;
+  color: #dd5a2e; border: none; border-bottom: 2px dashed #1f7a6c;
+  background: rgba(31,122,108,0.06); text-align: center;
+  padding: 8px 18px; border-radius: 6px; outline: none; width: min(440px, 92%);
+  transition: all 0.2s ease; cursor: text;
+}
+.cert-name-input:focus {
+  background: rgba(31,122,108,0.14); border-bottom: 2px solid #1f7a6c;
+  box-shadow: 0 0 12px rgba(31,122,108,0.25);
+}
+.cert-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  margin: 24px 0; text-align: left; background: #f4faf6; padding: 18px;
+  border-radius: 8px; font-size: 13.5px; border: 1px solid #dbeae3;
+}
+
+/* Modals */
+.modal-backdrop {
+  position: absolute; inset: 0; z-index: 40;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal-window {
+  width: min(680px, 90vw); max-height: 85vh; background: var(--bg-panel);
+  border: 1px solid var(--border-bright); border-radius: 12px;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+.modal-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border-line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-body { padding: 20px; overflow-y: auto; font-size: 14.5px; line-height: 1.6; }
+.modal-footer {
+  padding: 14px 20px; border-top: 1px solid var(--border-line);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+</style>
+</head>
+
+<body>
+<div id="app-root">
+
+  <!-- Backgrounds -->
+  <div class="bg-layer" id="forest-bg-layer"></div>
+  <div class="bg-layer" id="primary-3d-stage"><canvas id="primary-canvas"></canvas></div>
+  <canvas id="ambient-fx-canvas"></canvas>
+
+  <!-- Top Navigation -->
+  <header class="top-nav">
+    <div class="brand-group">
+      <span class="station-badge">IB SCIENCE · UNIT: CELLS</span>
+      <h1 class="game-title">Project Cytocore: The Cell Odyssey</h1>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn" id="btn-voice-toggle"><span id="voice-status-icon">🎙️ VOICE: ON</span></button>
+      <button class="nav-btn" id="btn-voice-settings">⚙️ Voice Studio</button>
+      <button class="nav-btn" id="btn-sound-toggle"><span id="sound-status-icon">SFX: ON</span></button>
+      <button class="nav-btn" id="btn-mission-log">Mission Log</button>
+      <button class="nav-btn" id="btn-dossier">Field Dossier</button>
+    </div>
+  </header>
+
+  <!-- VN Dialogue Box & Anime Character Stage -->
+  <div class="vn-container" id="vn-box">
+    <div class="vn-character-stage" id="char-stage">
+      <div class="anime-avatar-frame" id="avatar-frame">
+        <img id="avatar-img" src="assets/dr_elena.jpg" alt="Dr. Elena Vance">
+        <div class="emote-bubble" id="char-emote">Sparkle! ✨</div>
+      </div>
+    </div>
+
+    <div class="dialogue-box">
+      <div class="dialogue-header-row">
+        <div class="speaker-tag elena" id="speaker-badge">DR. ELENA VANCE</div>
+        <button class="dialogue-toggle-btn" id="btn-minimize-vn">Minimize (–)</button>
+      </div>
+      <div class="dialogue-text" id="typewriter-text">
+        Initializing field telemetry... Welcome to the Ancient Temperate Forest Eco-Reserve, Cadet!
+      </div>
+      
+      <div class="choice-menu" id="choice-container" style="display:none;"></div>
+
+      <div class="dialogue-controls" id="dialogue-controls-bar">
+        <span class="dialogue-hints">Press [SPACE] or Click to proceed</span>
+        <div class="dialogue-btns">
+          <button class="dialogue-btn" id="btn-vn-speak" title="Replay Character Voice"><span>🔊</span><span>Speak</span></button>
+          <button class="dialogue-btn" id="btn-vn-voice-studio" title="Character Voice Studio & Settings"><span>⚙️</span><span>Voice</span></button>
+          <button class="dialogue-btn" id="btn-vn-skip">Fast Forward</button>
+          <button class="dialogue-btn" id="btn-vn-next">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ACTIVITY 1: CELL DISSECTION ================= -->
+  <section class="activity-screen" id="act-screen-dissection">
+    <div class="activity-layout">
+      <div class="canvas-viewport">
+        <canvas id="dissect-canvas"></canvas>
+        <div class="tag-3d-host" id="dissect-tag-host"></div>
+        
+        <!-- Prominent Top Specimen Indicator Banner -->
+        <div class="active-specimen-banner animal-mode" id="active-specimen-banner">
+          <div class="specimen-badge-title" id="specimen-badge-title">
+            <span id="specimen-icon">🫀</span>
+            <span id="specimen-text">SPECIMEN: ANIMAL CELL MATRIX</span>
+          </div>
+          <div class="specimen-subtag" id="specimen-subtag">Eukaryotic Animal Cell · Plasma Membrane &amp; Centrosome Matrix</div>
+        </div>
+
+        <div class="viewport-toolbar">
+          <span class="view-tag" id="dissect-specimen-label">SPECIMEN: 🫀 ANIMAL CELL</span>
+          <button class="dialogue-btn" id="btn-toggle-cell-type">Switch to Plant Cell</button>
+          <button class="dialogue-btn" id="btn-toggle-diagram">High-Res Electron Scan</button>
+          <button class="dialogue-btn" id="btn-toggle-labels">Toggle 3D Labels</button>
+        </div>
+      </div>
+      <aside class="activity-sidebar">
+        <div class="sidebar-card">
+          <span class="sub-tag">STATION TASK 1</span>
+          <h3>Scientific Cell Dissection</h3>
+          <p>Rotate the 3D specimen in real time. Click individual organelles or use the checklist to verify structural adaptations.</p>
+        </div>
+
+        <div class="micro-image-box" id="micro-diagram-box" style="display:none;">
+          <img src="assets/animal_cell.jpg" alt="3D Scientific Animal Cell Diagram">
+        </div>
+
+        <div class="sidebar-card" id="organelle-inspector">
+          <span class="sub-tag" id="inspect-category">SELECT STRUCTURE</span>
+          <h3 id="inspect-title">Awaiting Selection</h3>
+          <p id="inspect-desc">Click any organelle in the 3D cell or in the list below to inspect its function.</p>
+        </div>
+
+        <div class="sidebar-card">
+          <span class="sub-tag">CHECKLIST PROGRESS</span>
+          <div id="dissect-checklist"></div>
+          <button class="choice-btn" id="btn-finish-dissect" style="margin-top:14px; width:100%; display:none;">
+            <span>Report Findings to Dr. Vance</span>
+            <span class="choice-arrow">→</span>
+          </button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= ACTIVITY 2: CELLULAR FACTORY TYCOON ================= -->
+  <section class="activity-screen" id="act-screen-tycoon">
+    <div class="activity-layout">
+      <div class="canvas-viewport">
+        <canvas id="tycoon-canvas"></canvas>
+        <div class="viewport-toolbar">
+          <span class="view-tag" id="tycoon-type-label">3D PLANT POWER STATION</span>
+          <span class="view-tag" id="tycoon-round-label">EVENT: ROUND 1 / 4</span>
+        </div>
+      </div>
+      <aside class="activity-sidebar">
+        <div class="sidebar-card">
+          <span class="sub-tag">TYCOON SIMULATION</span>
+          <h3>Cellular Factory Tycoon</h3>
+          <p>Maintain cellular homeostasis! Watch the live 3D factory respond and trigger organelle countermeasures.</p>
+        </div>
+        
+        <div class="resource-grid">
+          <div class="res-meter">
+            <div class="res-meter-label"><span>ATP (Energy)</span><span id="meter-val-energy">70%</span></div>
+            <div class="meter-bar-track"><div class="meter-bar-fill energy" id="bar-fill-energy" style="width:70%;"></div></div>
+          </div>
+          <div class="res-meter">
+            <div class="res-meter-label"><span>Turgor Pressure</span><span id="meter-val-turgor">80%</span></div>
+            <div class="meter-bar-track"><div class="meter-bar-fill turgor" id="bar-fill-turgor" style="width:80%;"></div></div>
+          </div>
+          <div class="res-meter">
+            <div class="res-meter-label"><span>Structural Integrity</span><span id="meter-val-struct">90%</span></div>
+            <div class="meter-bar-track"><div class="meter-bar-fill structure" id="bar-fill-struct" style="width:90%;"></div></div>
+          </div>
+          <div class="res-meter">
+            <div class="res-meter-label"><span>Biomass / Protein</span><span id="meter-val-protein">60%</span></div>
+            <div class="meter-bar-track"><div class="meter-bar-fill protein" id="bar-fill-protein" style="width:60%;"></div></div>
+          </div>
+        </div>
+
+        <div class="event-alert-card" id="tycoon-event-box">
+          <div class="event-alert-title" id="tycoon-event-title">EVENT DETECTED</div>
+          <div class="event-alert-desc" id="tycoon-event-desc">Drought wave approaching! Water potential dropping rapidly.</div>
+        </div>
+
+        <div class="sidebar-card">
+          <span class="sub-tag">ORGANELLE COUNTERMEASURES</span>
+          <div class="tycoon-actions" id="tycoon-actions-host"></div>
+        </div>
+
+        <button class="choice-btn" id="btn-next-tycoon-round" style="display:none;">
+          <span>Resolve Event & Continue</span>
+          <span class="choice-arrow">→</span>
+        </button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= ACTIVITY 3: SPECIALISED CELLS RPG DECK ================= -->
+  <section class="activity-screen" id="act-screen-rpg">
+    <div style="width:100%; height:100%; display:flex; flex-direction:column; overflow:hidden;">
+      <div class="top-nav" style="border-bottom:1px solid var(--border-bright);">
+        <div>
+          <span class="station-badge">ACTIVITY 3: CHARACTER CLASS SELECTION</span>
+          <h2 style="font-family:var(--font-display); font-size:18px; margin-top:2px;">Specialised Cell RPG Trading Deck (3D Models)</h2>
+        </div>
+        <div style="font-family:var(--font-mono); font-size:13px; color:var(--amber);" id="rpg-mission-brief">
+          MISSION: Select the optimal cell class for the target biological challenge
+        </div>
+      </div>
+      
+      <div style="background:rgba(230,161,59,0.15); border-bottom:1px solid var(--amber); padding:12px 24px; font-size:14px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong style="color:var(--amber);">EMERGENCY SCENARIO:</strong>
+          <span id="rpg-challenge-text">Deliver oxygen molecules through narrow, high-resistance capillaries without obstruction.</span>
+        </div>
+        <button class="choice-btn" id="btn-confirm-rpg-choice" style="padding:6px 16px; margin:0;" disabled>
+          <span>Deploy Selected Cell</span>
+          <span class="choice-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="rpg-deck-grid" id="rpg-card-container"></div>
+    </div>
+  </section>
+
+  <!-- ================= ACTIVITY 4: 3D ANATOMICAL BODY HIERARCHY ================= -->
+  <section class="activity-screen" id="act-screen-hierarchy">
+    <div class="hier-layout">
+      
+      <!-- Central 3D Anatomical Body Viewport -->
+      <div class="hier-viewport-col">
+        <canvas id="hier-viewport-canvas"></canvas>
+        <div class="hier-tag-host" id="hier-tag-host"></div>
+
+        <!-- Top Controls Bar -->
+        <div class="hier-top-bar">
+          <div class="hier-mode-toggles">
+            <button class="hier-toggle-pill active" id="btn-track-animal">🫀 Human Anatomy Track</button>
+            <button class="hier-toggle-pill" id="btn-track-plant">🌿 Plant Anatomy Track</button>
+          </div>
+
+          <!-- Interactive 5-Level Rail -->
+          <div class="hier-tier-rail" id="hier-rail-bar">
+            <div class="hier-rail-step active" data-level="0"><span class="hier-rail-num">1</span><span>Cell</span></div>
+            <div class="hier-rail-step" data-level="1"><span class="hier-rail-num">2</span><span>Tissue</span></div>
+            <div class="hier-rail-step" data-level="2"><span class="hier-rail-num">3</span><span>Organ</span></div>
+            <div class="hier-rail-step" data-level="3"><span class="hier-rail-num">4</span><span>System</span></div>
+            <div class="hier-rail-step" data-level="4"><span class="hier-rail-num">5</span><span>Organism</span></div>
+          </div>
+
+          <div class="hier-mode-toggles">
+            <button class="hier-toggle-pill" id="btn-view-macro">Full Body (Macro)</button>
+            <button class="hier-toggle-pill" id="btn-view-meso">Thoracic (Meso)</button>
+            <button class="hier-toggle-pill" id="btn-view-micro">Cellular (Micro)</button>
+          </div>
+        </div>
+
+        <!-- Holographic Vitals Telemetry HUD -->
+        <div class="hier-vitals-hud">
+          <div class="vitals-row"><span>BIOLOGICAL SPECIMEN:</span><span class="vitals-val" id="hud-specimen-val">HOMO SAPIENS (HUMAN)</span></div>
+          <div class="vitals-row"><span>HIERARCHY TIER:</span><span class="vitals-val" id="hud-tier-val">TIER 1 — CELLULAR</span></div>
+          <div class="vitals-row"><span>ACTIVE COMPONENT:</span><span class="vitals-val" id="hud-component-val" style="color:var(--amber);">CARDIOMYOCYTE</span></div>
+          <div class="vitals-row"><span>BIOLOGICAL HOMEOSTASIS:</span><span class="vitals-val" style="color:var(--teal-prime);">100% OPERATIONAL</span></div>
+        </div>
+
+        <!-- Assembly Tray Shelf -->
+        <div class="hier-bottom-shelf">
+          <div class="shelf-header">
+            <div class="shelf-title" id="hier-shelf-title">SELECT SPECIMEN COMPONENT TO MANIFEST IN THE 3D BODY</div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--ink-muted);">Click any tier below to inspect</span>
+          </div>
+          <div class="assembly-pool-row" id="hier-pool-row"></div>
+        </div>
+      </div>
+
+      <!-- Sidebar Telemetry & Details -->
+      <aside class="activity-sidebar">
+        <div class="sidebar-card">
+          <span class="sub-tag" id="hier-tier-tag">TIER 1 — CELLULAR LEVEL</span>
+          <h3 id="hier-detail-title">Cardiac Muscle Cell</h3>
+          <p id="hier-detail-desc">A specialized contractile cardiomyocyte with striated actin & myosin protein filaments. Drag in the 3D viewport to inspect its structure!</p>
+        </div>
+
+        <div class="sidebar-card">
+          <span class="sub-tag">BIOLOGICAL HIERARCHY CONCEPT</span>
+          <div style="font-size:13px; line-height:1.5; color:var(--ink-light);" id="hier-concept-desc">
+            <strong>Cell $\rightarrow$ Tissue $\rightarrow$ Organ $\rightarrow$ System $\rightarrow$ Organism:</strong> In multicellular organisms, individual specialized cells work in unison. They form muscle tissue, build pump organs (heart), integrate into organ systems (circulatory), and sustain the living organism.
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <span class="sub-tag">ANATOMICAL X-RAY LAYERS</span>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="dialogue-btn" id="btn-toggle-skeleton" style="justify-content:space-between;">
+              <span>Skeletal Cage (Ribs & Spine)</span>
+              <span id="label-skeleton-state" style="color:var(--teal-prime);">ON</span>
+            </button>
+            <button class="dialogue-btn" id="btn-toggle-vessels" style="justify-content:space-between;">
+              <span>Vascular Blood Pulse</span>
+              <span id="label-vessels-state" style="color:var(--teal-prime);">ACTIVE</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <span class="sub-tag">ASSEMBLY PROGRESS</span>
+          <div style="font-family:var(--font-mono); font-size:13px; color:var(--teal-prime); margin-bottom:6px;" id="hier-progress-text">
+            Tiers Discovered: 1 / 5
+          </div>
+          <p style="font-size:12px; color:var(--ink-muted);" id="hier-instruction-text">
+            Click through all 5 hierarchy tiers from microscopic cell to full organism to complete the simulation.
+          </p>
+        </div>
+
+        <button class="choice-btn" id="btn-complete-hier-mission" style="display:none; margin-top:auto;">
+          <span>Complete Assembly &amp; Generate Certificate</span>
+          <span class="choice-arrow">→</span>
+        </button>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- ================= ACT 5: FINAL CERTIFICATE ================= -->
+  <section class="activity-screen" id="act-screen-certificate" style="overflow-y:auto;">
+    <div class="certificate-frame" id="certificate-print-node">
+      <div class="cert-header">Apex Bio-Station Laboratory Certificate</div>
+      <div class="cert-sub">International Baccalaureate (IB) Science — Unit: Cells</div>
+      <p style="margin-bottom:6px; font-size:14px; color:#2d4a44;">This certifies that Research Cadet</p>
+      <div style="margin: 8px 0 14px;">
+        <input type="text" id="cert-student-input" value="CADET RESEARCHER" class="cert-name-input" title="Click to edit your name on the certificate" placeholder="Enter Your Name" />
+      </div>
+      <p style="font-size:14px; color:#2d4a44;">has successfully completed all foundational research modules with distinction:</p>
+      
+      <div class="cert-grid">
+        <div><strong>Module 1:</strong> 3D Cell Dissection (Animal &amp; Plant)</div>
+        <div><strong>Module 2:</strong> Cellular Factory Tycoon</div>
+        <div><strong>Module 3:</strong> Specialised Cells RPG Deck</div>
+        <div><strong>Module 4:</strong> 3D Body Hierarchy Assembly</div>
+      </div>
+
+      <p style="font-size:13px; color:#3f5d57; margin-top:16px;">
+        Issued under the authority of Dr. Elena Vance and the Apex Biological Council.
+      </p>
+      <div style="margin-top:24px; display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
+        <button class="nav-btn" id="btn-download-cert-png" style="background:#1f7a6c; color:#fff; border-color:#0f4a40; font-weight:700; font-size:14px; padding:10px 24px; box-shadow:0 4px 16px rgba(31,122,108,0.4);">
+          <span>💾 Download Certificate (PNG)</span>
+        </button>
+        <button class="nav-btn" id="btn-restart-game">Replay Odyssey</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modals -->
+  <div class="modal-backdrop" id="modal-log">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 style="font-family:var(--font-display); font-size:18px;">Mission Communications Log</h3>
+        <button class="nav-btn" id="btn-close-log">✕</button>
+      </div>
+      <div class="modal-body" id="modal-log-content"></div>
+      <div class="modal-footer"><button class="nav-btn" id="btn-close-log-footer">Close</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-dossier">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 style="font-family:var(--font-display); font-size:18px;">IB Cell Biology Field Dossier</h3>
+        <button class="nav-btn" id="btn-close-dossier">✕</button>
+      </div>
+      <div class="modal-body">
+        <h4 style="color:var(--teal-prime); margin-bottom:6px;">1. Cell Basics</h4>
+        <p style="margin-bottom:14px; font-size:13.5px; color:var(--ink-muted);">
+          All living things are made of cells. Cells are microscopic units containing organelles suspended in cytoplasm.
+        </p>
+        <h4 style="color:var(--amber); margin-bottom:6px;">2. Plant vs. Animal Cells</h4>
+        <p style="margin-bottom:14px; font-size:13.5px; color:var(--ink-muted);">
+          <strong>Plant:</strong> Cell wall, chloroplasts, large vacuole.<br>
+          <strong>Animal:</strong> Flexible membrane, lysosomes, small temporary vacuoles, centrioles.
+        </p>
+        <h4 style="color:var(--coral); margin-bottom:6px;">3. Specialised Cells</h4>
+        <p style="margin-bottom:14px; font-size:13.5px; color:var(--ink-muted);">
+          Red blood cells (biconcave, no nucleus), Neurons (long axon, dendrites), Root hair cells (huge surface area).
+        </p>
+        <h4 style="color:var(--violet); margin-bottom:6px;">4. Hierarchy</h4>
+        <p style="font-size:13.5px; color:var(--ink-muted);">Cell → Tissue → Organ → Organ System → Organism.</p>
+      </div>
+      <div class="modal-footer"><button class="nav-btn" id="btn-close-dossier-footer">Close Dossier</button></div>
+    </div>
+  </div>
+
+  <!-- Voice Studio Customization Modal -->
+  <div class="modal-backdrop" id="modal-voice-settings">
+    <div class="modal-window" style="width:min(740px, 94vw);">
+      <div class="modal-header">
+        <h3 style="font-family:var(--font-display); font-size:18px; display:flex; align-items:center; gap:8px;">
+          <span>⚙️ Character Voice Studio &amp; Assignment</span>
+        </h3>
+        <button class="nav-btn" id="btn-close-voice-settings">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        
+        <!-- ElevenLabs API Integration Box -->
+        <div class="elevenlabs-key-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">✨</span>
+              <strong style="color:var(--teal-prime); font-size:14px;">ElevenLabs Neural AI Voice Engine</strong>
+            </div>
+            <span class="key-status-pill fallback" id="eleven-key-status-pill">○ Browser Neural TTS Active</span>
+          </div>
+          <p style="font-size:12px; color:var(--ink-muted); margin-bottom:10px; line-height:1.45;">
+            Enter your personal ElevenLabs API Key to unlock ultra-realistic character voices. If empty or invalid, the simulator automatically falls back to smooth high-fidelity browser speech synthesis.
+          </p>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="password" id="input-eleven-api-key" placeholder="Enter ElevenLabs API Key (e.g. sk_...)" 
+              style="flex:1; font-size:12.5px; font-family:var(--font-mono); padding:8px 12px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright);">
+            <button class="nav-btn" id="btn-toggle-key-visibility" style="padding:8px 12px; font-size:14px;" title="Show/Hide Key">👁️</button>
+          </div>
+        </div>
+
+        <!-- Zoe Chen Customization Card -->
+        <div style="background:rgba(85,52,136,0.18); border:1.5px solid #9d7ad9; border-radius:10px; padding:16px; box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <img src="assets/zoe.jpg" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #9d7ad9;">
+              <div>
+                <strong style="color:#d8bbf7; font-size:15px; display:block;">Zoe Chen (Student Cadet Researcher)</strong>
+                <span style="font-size:11.5px; color:var(--ink-muted);">Assign any voice, pitch, or speed to Zoe</span>
+              </div>
+            </div>
+            <button class="dialogue-btn" id="btn-test-zoe" style="border-color:#9d7ad9; color:#fff; background:rgba(157,122,217,0.35); padding:6px 14px; font-weight:700;">
+              <span>▶️ Test Zoe's Voice</span>
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; color:var(--ink-muted); margin-bottom:4px; font-weight:600;">Browser / System Voice:</label>
+              <select id="voice-select-zoe" style="width:100%; font-size:13px; font-family:var(--font-body); padding:7px 10px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright); text-align:left; cursor:pointer;"></select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--ink-muted); margin-bottom:4px; font-weight:600;">ElevenLabs Neural Voice Preset:</label>
+              <select id="eleven-select-zoe" style="width:100%; font-size:13px; font-family:var(--font-body); padding:7px 10px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright); text-align:left; cursor:pointer;">
+                <option value="pFZP5JQG7iQjIQuC4Bku">Lily (Warm, Youthful, Bright)</option>
+                <option value="piTKgcLEGmPE4e6mEKli">Nicole (Soft, Energetic)</option>
+                <option value="ThT5KcBeYPX3keUQqHPh">Dorothy (Clear, Expressive)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">Bella (Engaging, Warm)</option>
+                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Calm, Articulate)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; background:rgba(0,0,0,0.25); padding:10px 14px; border-radius:8px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+                <span>Vocal Pitch:</span><strong id="label-pitch-zoe" style="color:var(--teal-prime);">1.10x</strong>
+              </div>
+              <input type="range" id="slider-pitch-zoe" min="0.6" max="1.6" step="0.02" value="1.10" style="width:100%; cursor:pointer;">
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+                <span>Speaking Rate:</span><strong id="label-rate-zoe" style="color:var(--teal-prime);">1.02x</strong>
+              </div>
+              <input type="range" id="slider-rate-zoe" min="0.6" max="1.5" step="0.02" value="1.02" style="width:100%; cursor:pointer;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Kai Cruz Customization Card -->
+        <div style="background:rgba(150,74,23,0.18); border:1.5px solid #e6a13b; border-radius:10px; padding:16px; box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <img src="assets/kai.jpg" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #e6a13b;">
+              <div>
+                <strong style="color:#fcd394; font-size:15px; display:block;">Kai Cruz (Bio-Engineer)</strong>
+                <span style="font-size:11.5px; color:var(--ink-muted);">Assign voice (youthful light male tone, not deep)</span>
+              </div>
+            </div>
+            <button class="dialogue-btn" id="btn-test-kai" style="border-color:#e6a13b; color:#fff; background:rgba(230,161,59,0.35); padding:6px 14px; font-weight:700;">
+              <span>▶️ Test Kai's Voice</span>
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; color:var(--ink-muted); margin-bottom:4px; font-weight:600;">Browser / System Voice:</label>
+              <select id="voice-select-kai" style="width:100%; font-size:13px; font-family:var(--font-body); padding:7px 10px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright); text-align:left; cursor:pointer;"></select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--ink-muted); margin-bottom:4px; font-weight:600;">ElevenLabs Neural Voice Preset:</label>
+              <select id="eleven-select-kai" style="width:100%; font-size:13px; font-family:var(--font-body); padding:7px 10px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright); text-align:left; cursor:pointer;">
+                <option value="ErXwobaYiN019PkySvjV">Antoni (Youthful, Energetic, Light Male)</option>
+                <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Young, Casual Male)</option>
+                <option value="yoZ06aMxZJJ28mfd3POQ">Sam (Dynamic, Clear)</option>
+                <option value="pNInz6obpgDQGcFmaJgB">Adam (Conversational)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; background:rgba(0,0,0,0.25); padding:10px 14px; border-radius:8px;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+                <span>Vocal Pitch:</span><strong id="label-pitch-kai" style="color:var(--amber);">1.10x</strong>
+              </div>
+              <input type="range" id="slider-pitch-kai" min="0.6" max="1.6" step="0.02" value="1.10" style="width:100%; cursor:pointer;">
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:4px;">
+                <span>Speaking Rate:</span><strong id="label-rate-kai" style="color:var(--amber);">1.02x</strong>
+              </div>
+              <input type="range" id="slider-rate-kai" min="0.6" max="1.5" step="0.02" value="1.02" style="width:100%; cursor:pointer;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dr. Elena Vance Customization Card -->
+        <div style="background:rgba(19,96,82,0.18); border:1.5px solid #2ebfa5; border-radius:10px; padding:16px; box-shadow:0 4px 16px rgba(0,0,0,0.3);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <img src="assets/dr_elena.jpg" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #2ebfa5;">
+              <div>
+                <strong style="color:#7ef1dc; font-size:15px; display:block;">Dr. Elena Vance (Lead Biologist)</strong>
+                <span style="font-size:11.5px; color:var(--ink-muted);">Assign voice (mature, articulate tone)</span>
+              </div>
+            </div>
+            <button class="dialogue-btn" id="btn-test-elena" style="border-color:#2ebfa5; color:#fff; background:rgba(46,191,165,0.35); padding:6px 14px; font-weight:700;">
+              <span>▶️ Test Elena's Voice</span>
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; color:var(--ink-muted); margin-bottom:4px; font-weight:600;">Browser / System Voice:</label>
+              <select id="voice-select-elena" style="width:100%; font-size:13px; font-family:var(--font-body); padding:7px 10px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright); text-align:left; cursor:pointer;"></select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--ink-muted); margin-bottom:4px; font-weight:600;">ElevenLabs Neural Voice Preset:</label>
+              <select id="eleven-select-elena" style="width:100%; font-size:13px; font-family:var(--font-body); padding:7px 10px; border-radius:6px; background:var(--bg-card); color:#fff; border:1px solid var(--border-bright); text-align:left; cursor:pointer;">
+                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (Calm, Articulate, Mature)</option>
+                <option value="EXAVITQu4vr4xnSDxMaL">Bella (Expressive, Engaging)</option>
+                <option value="jsCqWAovK2LkecY7zXl4">Freya (Authoritative, Clear)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; color:var(--teal-prime);">✓ Settings saved automatically</span>
+        <button class="nav-btn" id="btn-close-voice-settings-footer" style="background:var(--teal-prime); color:var(--ink-dark); font-weight:700; padding:8px 20px;">Save &amp; Close</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   1. SOUND SYNTHESIS ENGINE (Web Audio API)
+   ========================================================================= */
+const AudioEngine = (function(){
+  let ctx = null;
+  let enabled = true;
+
+  function getCtx(){
+    if(!ctx){
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if(AudioCtx) ctx = new AudioCtx();
+    }
+    if(ctx && ctx.state==='suspended') ctx.resume();
+    return ctx;
+  }
+
+  return {
+    toggle(){ enabled = !enabled; return enabled; },
+    isEnabled(){ return enabled; },
+    playBlip(freq=600, duration=0.04){
+      if(!enabled) return;
+      try {
+        const c = getCtx(); if(!c) return;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, c.currentTime);
+        gain.gain.setValueAtTime(0.04, c.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + duration);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(); osc.stop(c.currentTime + duration);
+      } catch(e){}
+    },
+    playClick(){ this.playBlip(950, 0.03); },
+    playSuccess(){
+      if(!enabled) return;
+      try {
+        const c = getCtx(); if(!c) return;
+        const now = c.currentTime;
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i)=>{
+          const osc = c.createOscillator();
+          const gain = c.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + i*0.08);
+          gain.gain.setValueAtTime(0.05, now + i*0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i*0.08 + 0.3);
+          osc.connect(gain); gain.connect(c.destination);
+          osc.start(now + i*0.08); osc.stop(now + i*0.08 + 0.3);
+        });
+      } catch(e){}
+    },
+    playWarning(){
+      if(!enabled) return;
+      try {
+        const c = getCtx(); if(!c) return;
+        const now = c.currentTime;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(180, now + 0.1);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(now); osc.stop(now + 0.25);
+      } catch(e){}
+    }
+  };
+})();
+
+document.getElementById('btn-sound-toggle').addEventListener('click', ()=>{
+  const state = AudioEngine.toggle();
+  document.getElementById('sound-status-icon').textContent = state ? 'SFX: ON' : 'SFX: OFF';
+  AudioEngine.playClick();
+});
+
+/* =========================================================================
+   1.5 NATURAL CHARACTER VOICE ENGINE (ELEVENLABS + NEURAL SPEECH SYNTHESIS)
+   ========================================================================= */
+const VoiceEngine = (function(){
+  let enabled = true;
+  const synth = window.speechSynthesis;
+  let voices = [];
+  let currentAudio = null;
+  const audioCache = new Map();
+
+  // Character voice configurations with localStorage persistence
+  const charConfigs = {
+    zoe: {
+      voiceURI: localStorage.getItem('cfg_voice_zoe_uri') || '',
+      elevenId: localStorage.getItem('cfg_voice_zoe_eleven') || 'pFZP5JQG7iQjIQuC4Bku',
+      pitch: parseFloat(localStorage.getItem('cfg_voice_zoe_pitch') || '1.10'),
+      rate: parseFloat(localStorage.getItem('cfg_voice_zoe_rate') || '1.02')
+    },
+    kai: {
+      voiceURI: localStorage.getItem('cfg_voice_kai_uri') || '',
+      elevenId: localStorage.getItem('cfg_voice_kai_eleven') || 'ErXwobaYiN019PkySvjV',
+      pitch: parseFloat(localStorage.getItem('cfg_voice_kai_pitch') || '1.10'),
+      rate: parseFloat(localStorage.getItem('cfg_voice_kai_rate') || '1.02')
+    },
+    elena: {
+      voiceURI: localStorage.getItem('cfg_voice_elena_uri') || '',
+      elevenId: localStorage.getItem('cfg_voice_elena_eleven') || '21m00Tcm4TlvDq8ikWAM',
+      pitch: parseFloat(localStorage.getItem('cfg_voice_elena_pitch') || '1.02'),
+      rate: parseFloat(localStorage.getItem('cfg_voice_elena_rate') || '0.94')
+    }
+  };
+
+  let elevenApiKey = localStorage.getItem('cfg_eleven_api_key') || '';
+
+  function loadVoices(){
+    if(!synth) return;
+    voices = synth.getVoices() || [];
+    populateVoiceDropdowns();
+  }
+  if(synth){
+    loadVoices();
+    if(synth.onvoiceschanged !== undefined){
+      synth.onvoiceschanged = loadVoices;
+    }
+  }
+
+  function populateVoiceDropdowns(){
+    if(!voices || voices.length === 0) return;
+    const enVoices = voices.filter(v => v.lang && v.lang.startsWith('en'));
+    const pool = enVoices.length > 0 ? enVoices : voices;
+
+    ['zoe', 'kai', 'elena'].forEach(charKey=>{
+      const select = document.getElementById(`voice-select-${charKey}`);
+      if(!select) return;
+      const currentSelectedUri = charConfigs[charKey].voiceURI;
+
+      select.innerHTML = `
+        <option value="">-- Auto Match Natural Voice --</option>
+        ${pool.map(v => `
+          <option value="${v.voiceURI}" ${v.voiceURI === currentSelectedUri ? 'selected' : ''}>
+            ${v.name} (${v.lang})
+          </option>
+        `).join('')}
+      `;
+    });
+  }
+
+  function getBestVoiceForCharacter(charKey){
+    if(!voices || voices.length === 0) loadVoices();
+    const enVoices = voices.filter(v => v.lang && v.lang.startsWith('en'));
+    const pool = enVoices.length > 0 ? enVoices : (voices.length > 0 ? voices : []);
+    if(pool.length === 0) return null;
+
+    // Check user assigned specific voice URI first
+    if(charConfigs[charKey].voiceURI){
+      const assigned = pool.find(v => v.voiceURI === charConfigs[charKey].voiceURI);
+      if(assigned) return assigned;
+    }
+
+    if(charKey === 'elena'){
+      const elenaPref = pool.find(v => /libby|sonia|jenny|natural.*female|samantha|victoria|karen|moira|en-gb|uk.*female/i.test(v.name));
+      return elenaPref || pool.find(v => /female|woman/i.test(v.name)) || pool[0];
+    } else if(charKey === 'zoe'){
+      const zoePref = pool.find(v => 
+        /aria|ava|michelle|tessa|zira|en-us.*female|natural.*female/i.test(v.name) && 
+        !/libby|sonia|moira|victoria/i.test(v.name)
+      );
+      if(zoePref) return zoePref;
+      const anyOtherFemale = pool.find(v => /female|woman|zira|aria/i.test(v.name));
+      return anyOtherFemale || pool[0];
+    } else if(charKey === 'kai'){
+      const youngMalePref = pool.find(v => 
+        /ryan|guy|mark|daniel|alex|steffan|christopher|eric|natural.*male|en-us.*male/i.test(v.name) && 
+        !/david|george|deep/i.test(v.name)
+      );
+      if(youngMalePref) return youngMalePref;
+      const anyNonDavidMale = pool.find(v => (/male|man|alex|daniel/i.test(v.name)) && !/david/i.test(v.name));
+      return anyNonDavidMale || pool.find(v => /male|man/i.test(v.name)) || pool[0];
+    }
+
+    return pool[0];
+  }
+
+  function cleanTextForSpeech(htmlStr){
+    const tmp = document.createElement('div');
+    tmp.innerHTML = htmlStr;
+    let txt = tmp.textContent || tmp.innerText || '';
+    txt = txt.replace(/\bO2\b/g, 'oxygen')
+             .replace(/\bCO2\b/g, 'carbon dioxide')
+             .replace(/\bATP\b/g, 'A T P')
+             .replace(/\bDNA\b/g, 'D N A')
+             .replace(/\bER\b/g, 'endoplasmic reticulum')
+             .replace(/\bDr\.\b/g, 'Doctor')
+             .replace(/\bIB\b/g, 'I B')
+             .replace(/\b→\b/g, 'to')
+             .replace(/\bvs\.\b/g, 'versus')
+             .replace(/[🔬🧬🫀🫁🌿💾🎙️🔊✨💧⚠️✓→]/g, ' ')
+             .replace(/\s+/g, ' ')
+             .trim();
+    return txt;
+  }
+
+  function setSpeakingState(speaking, charKey='elena'){
+    const avatar = document.getElementById('avatar-frame');
+    if(avatar){
+      avatar.classList.toggle('speaking', speaking);
+    }
+    const avatarImg = document.getElementById('avatar-img');
+    const badge = document.getElementById('speaker-badge');
+    if(speaking && avatarImg && badge){
+      if(charKey === 'zoe'){
+        avatarImg.src = 'assets/zoe.jpg';
+        badge.textContent = 'ZOE CHEN';
+        badge.className = 'speaker-tag zoe';
+      } else if(charKey === 'kai'){
+        avatarImg.src = 'assets/kai.jpg';
+        badge.textContent = 'KAI CRUZ';
+        badge.className = 'speaker-tag kai';
+      } else if(charKey === 'elena'){
+        avatarImg.src = 'assets/dr_elena.jpg';
+        badge.textContent = 'DR. ELENA VANCE';
+        badge.className = 'speaker-tag elena';
+      }
+    }
+  }
+
+  function speakFallback(spokenText, charKey){
+    if(!synth) return;
+    try {
+      synth.cancel();
+      const utter = new SpeechSynthesisUtterance(spokenText);
+      const voice = getBestVoiceForCharacter(charKey);
+      if(voice) utter.voice = voice;
+
+      const cfg = charConfigs[charKey] || charConfigs.elena;
+      utter.pitch = cfg.pitch || 1.0;
+      utter.rate = cfg.rate || 1.0;
+
+      utter.onstart = ()=>{ setSpeakingState(true, charKey); };
+      utter.onend = ()=>{ setSpeakingState(false, charKey); };
+      utter.onerror = ()=>{ setSpeakingState(false, charKey); };
+
+      synth.speak(utter);
+    } catch(e){
+      setSpeakingState(false, charKey);
+    }
+  }
+
+  async function speakElevenLabs(spokenText, charKey){
+    const key = elevenApiKey ? elevenApiKey.trim() : '';
+    if(!key) return false;
+
+    const cfg = charConfigs[charKey] || charConfigs.elena;
+    const voiceId = cfg.elevenId || 'pFZP5JQG7iQjIQuC4Bku';
+    const cacheKey = `${voiceId}_${spokenText}`;
+
+    if(audioCache.has(cacheKey)){
+      const cachedUrl = audioCache.get(cacheKey);
+      playAudioUrl(cachedUrl, charKey);
+      return true;
+    }
+
+    try {
+      const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'xi-api-key': key,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: spokenText,
+          model_id: 'eleven_turbo_v2_5',
+          voice_settings: {
+            stability: charKey==='elena' ? 0.65 : 0.45,
+            similarity_boost: 0.8,
+            style: 0.35,
+            use_speaker_boost: true
+          }
+        })
+      });
+
+      if(!resp.ok){
+        console.warn(`ElevenLabs TTS response status ${resp.status}: falling back to high-quality browser speech synthesis.`);
+        return false;
+      }
+
+      const blob = await resp.blob();
+      const audioUrl = URL.createObjectURL(blob);
+      audioCache.set(cacheKey, audioUrl);
+      playAudioUrl(audioUrl, charKey);
+      return true;
+    } catch(err){
+      console.warn('ElevenLabs TTS error:', err);
+      return false;
+    }
+  }
+
+  function playAudioUrl(url, charKey){
+    if(currentAudio){
+      currentAudio.pause();
+      currentAudio = null;
+    }
+    const audio = new Audio(url);
+    currentAudio = audio;
+    setSpeakingState(true, charKey);
+    audio.onended = ()=>{ setSpeakingState(false, charKey); };
+    audio.onerror = ()=>{ setSpeakingState(false, charKey); };
+    audio.play().catch(()=>{ setSpeakingState(false, charKey); });
+  }
+
+  function initSettingsUI(){
+    // Setup initial values from configs
+    const apiKeyInput = document.getElementById('input-eleven-api-key');
+    const apiKeyToggle = document.getElementById('btn-toggle-key-visibility');
+    const keyStatusPill = document.getElementById('eleven-key-status-pill');
+
+    function updateKeyStatusUI(){
+      if(!keyStatusPill) return;
+      if(elevenApiKey && elevenApiKey.trim().length > 10){
+        keyStatusPill.className = 'key-status-pill active';
+        keyStatusPill.innerHTML = '● ElevenLabs API Connected';
+      } else {
+        keyStatusPill.className = 'key-status-pill fallback';
+        keyStatusPill.innerHTML = '○ Browser Neural TTS Active';
+      }
+    }
+
+    if(apiKeyInput){
+      apiKeyInput.value = elevenApiKey;
+      apiKeyInput.oninput = ()=>{
+        elevenApiKey = apiKeyInput.value.trim();
+        localStorage.setItem('cfg_eleven_api_key', elevenApiKey);
+        updateKeyStatusUI();
+      };
+    }
+    if(apiKeyToggle && apiKeyInput){
+      apiKeyToggle.onclick = ()=>{
+        apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+        apiKeyToggle.textContent = apiKeyInput.type === 'password' ? '👁️' : '🙈';
+      };
+    }
+    updateKeyStatusUI();
+
+    ['zoe', 'kai', 'elena'].forEach(k=>{
+      const cfg = charConfigs[k];
+      const elevenSel = document.getElementById(`eleven-select-${k}`);
+      if(elevenSel && cfg.elevenId) elevenSel.value = cfg.elevenId;
+
+      const pitchSld = document.getElementById(`slider-pitch-${k}`);
+      const pitchLbl = document.getElementById(`label-pitch-${k}`);
+      if(pitchSld && cfg.pitch){
+        pitchSld.value = cfg.pitch;
+        if(pitchLbl) pitchLbl.textContent = cfg.pitch.toFixed(2) + 'x';
+        pitchSld.oninput = ()=>{
+          cfg.pitch = parseFloat(pitchSld.value);
+          if(pitchLbl) pitchLbl.textContent = cfg.pitch.toFixed(2) + 'x';
+          localStorage.setItem(`cfg_voice_${k}_pitch`, cfg.pitch.toString());
+        };
+      }
+
+      const rateSld = document.getElementById(`slider-rate-${k}`);
+      const rateLbl = document.getElementById(`label-rate-${k}`);
+      if(rateSld && cfg.rate){
+        rateSld.value = cfg.rate;
+        if(rateLbl) rateLbl.textContent = cfg.rate.toFixed(2) + 'x';
+        rateSld.oninput = ()=>{
+          cfg.rate = parseFloat(rateSld.value);
+          if(rateLbl) rateLbl.textContent = cfg.rate.toFixed(2) + 'x';
+          localStorage.setItem(`cfg_voice_${k}_rate`, cfg.rate.toString());
+        };
+      }
+
+      const vSel = document.getElementById(`voice-select-${k}`);
+      if(vSel){
+        vSel.onchange = ()=>{
+          cfg.voiceURI = vSel.value;
+          localStorage.setItem(`cfg_voice_${k}_uri`, cfg.voiceURI);
+        };
+      }
+
+      if(elevenSel){
+        elevenSel.onchange = ()=>{
+          cfg.elevenId = elevenSel.value;
+          localStorage.setItem(`cfg_voice_${k}_eleven`, cfg.elevenId);
+        };
+      }
+    });
+
+    // Test buttons
+    const testZoe = document.getElementById('btn-test-zoe');
+    if(testZoe){
+      testZoe.onclick = (e)=>{
+        e.stopPropagation();
+        VoiceEngine.speak("Hi there cadet! I'm Zoe Chen, ready to test specialized cell adaptations with you!", 'zoe');
+      };
+    }
+    const testKai = document.getElementById('btn-test-kai');
+    if(testKai){
+      testKai.onclick = (e)=>{
+        e.stopPropagation();
+        VoiceEngine.speak("Systems nominal! I'm Kai Cruz, bio-engineer. Let's optimize our cellular power stations!", 'kai');
+      };
+    }
+    const testElena = document.getElementById('btn-test-elena');
+    if(testElena){
+      testElena.onclick = (e)=>{
+        e.stopPropagation();
+        VoiceEngine.speak("Welcome to Project Cytocore, Cadet. I am Doctor Elena Vance, lead research director.", 'elena');
+      };
+    }
+
+    // Modal open / close handlers
+    const openBtn = document.getElementById('btn-voice-settings');
+    const vnOpenBtn = document.getElementById('btn-vn-voice-studio');
+    const modal = document.getElementById('modal-voice-settings');
+    const closeBtn = document.getElementById('btn-close-voice-settings');
+    const closeFooterBtn = document.getElementById('btn-close-voice-settings-footer');
+
+    const openVoiceModal = ()=>{
+      populateVoiceDropdowns();
+      modal.classList.add('open');
+      AudioEngine.playClick();
+    };
+    if(openBtn && modal) openBtn.onclick = openVoiceModal;
+    if(vnOpenBtn && modal) vnOpenBtn.onclick = openVoiceModal;
+    if(closeBtn && modal){ closeBtn.onclick = ()=>{ modal.classList.remove('open'); AudioEngine.playClick(); }; }
+    if(closeFooterBtn && modal){ closeFooterBtn.onclick = ()=>{ modal.classList.remove('open'); AudioEngine.playClick(); }; }
+  }
+
+  // Init UI when DOM is ready
+  window.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(initSettingsUI, 300);
+  });
+
+  return {
+    toggle(){
+      enabled = !enabled;
+      if(!enabled){
+        if(synth) synth.cancel();
+        if(currentAudio) currentAudio.pause();
+      }
+      setSpeakingState(false);
+      return enabled;
+    },
+    isEnabled(){ return enabled; },
+    stop(){
+      if(synth) synth.cancel();
+      if(currentAudio) currentAudio.pause();
+      setSpeakingState(false);
+    },
+    getConfigs(){ return charConfigs; },
+    openStudio(){
+      const m = document.getElementById('modal-voice-settings');
+      if(m){ populateVoiceDropdowns(); m.classList.add('open'); }
+    },
+    async speak(text, charKey='elena'){
+      if(!enabled) return;
+      if(currentAudio){ currentAudio.pause(); currentAudio = null; }
+      if(synth) synth.cancel();
+
+      const spokenText = cleanTextForSpeech(text);
+      if(!spokenText.trim()) return;
+
+      // 1. Attempt ultra-realistic ElevenLabs neural voice
+      const success = await speakElevenLabs(spokenText, charKey);
+      if(!success){
+        // 2. Seamlessly use character-tuned natural browser voice fallback
+        speakFallback(spokenText, charKey);
+      }
+    }
+  };
+})();
+
+const voiceToggleBtn = document.getElementById('btn-voice-toggle');
+if(voiceToggleBtn){
+  voiceToggleBtn.addEventListener('click', ()=>{
+    const state = VoiceEngine.toggle();
+    document.getElementById('voice-status-icon').textContent = state ? '🎙️ VOICE: ON' : '🎙️ VOICE: OFF';
+    AudioEngine.playClick();
+  });
+}
+
+/* =========================================================================
+   2. AMBIENT PARTICLES
+   ========================================================================= */
+(function initAmbientFX(){
+  const canvas = document.getElementById('ambient-fx-canvas');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  window.addEventListener('resize', ()=>{ w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+
+  const particles = Array.from({length: 45}, ()=>({
+    x: Math.random()*w, y: Math.random()*h,
+    r: Math.random()*2.5 + 0.8,
+    dx: (Math.random()-0.5)*0.4,
+    dy: -Math.random()*0.6 - 0.2,
+    alpha: Math.random()*0.6 + 0.2
+  }));
+
+  function loop(){
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(p=>{
+      p.x += p.dx; p.y += p.dy;
+      if(p.y < -10) p.y = h + 10;
+      if(p.x < -10) p.x = w + 10;
+      if(p.x > w + 10) p.x = -10;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(210, 245, 230, ${p.alpha})`;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#2ebfa5';
+      ctx.fill();
+    });
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* =========================================================================
+   3. BACKGROUND 3D HOLOGRAPHIC LAB
+   ========================================================================= */
+(function initBackground3D(){
+  const canvas = document.getElementById('primary-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.set(0, 0, 10);
+
+  const ringGroup = new THREE.Group();
+  for(let i=0; i<3; i++){
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(3.5 + i*1.2, 0.025, 8, 48),
+      new THREE.MeshBasicMaterial({ color: 0x2ebfa5, transparent: true, opacity: 0.25 })
+    );
+    ring.rotation.x = Math.PI / (2 + i*0.5);
+    ring.rotation.y = i * 0.4;
+    ringGroup.add(ring);
+  }
+  scene.add(ringGroup);
+
+  const orbGroup = new THREE.Group();
+  for(let i=0; i<25; i++){
+    const orb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08 + Math.random()*0.1, 8, 8),
+      new THREE.MeshBasicMaterial({ color: i%2===0 ? 0x2ebfa5 : 0xe6a13b, transparent: true, opacity: 0.5 })
+    );
+    orb.position.set((Math.random()-0.5)*12, (Math.random()-0.5)*8, (Math.random()-0.5)*6);
+    orbGroup.add(orb);
+  }
+  scene.add(orbGroup);
+
+  function resize(){
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function loop(){
+    ringGroup.rotation.y += 0.003;
+    ringGroup.rotation.x += 0.0015;
+    orbGroup.rotation.y -= 0.001;
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* =========================================================================
+   4. ANIME VISUAL NOVEL ENGINE
+   ========================================================================= */
+const CHAR_PORTRAITS = {
+  elena: 'assets/dr_elena.jpg',
+  zoe: 'assets/zoe.jpg',
+  kai: 'assets/kai.jpg'
+};
+
+const STORY_NODES = [
+  {
+    id: 'forest_intro_1',
+    speaker: 'Dr. Elena Vance',
+    speakerClass: 'elena',
+    char: 'elena',
+    forest: true,
+    text: "Welcome to the Ancient Temperate Forest, Cadet! Every towering tree, fern, and living animal here is constructed from microscopic building blocks: <em>Cells</em>!",
+  },
+  {
+    id: 'forest_intro_2',
+    speaker: 'Zoe Chen',
+    speakerClass: 'zoe',
+    char: 'zoe',
+    forest: true,
+    text: "I collected fresh plant leaf and animal tissue specimens with my bio-scanner! Let's examine them in 3D to see how their internal organelles differ.",
+  },
+  {
+    id: 'forest_intro_3',
+    speaker: 'Kai Cruz',
+    speakerClass: 'kai',
+    char: 'kai',
+    forest: true,
+    text: "Cells are alive like microscopic bio-factories! Let's rotate and dissect our live 3D Animal and Plant cell specimens.",
+    choices: [
+      { text: "Launch 3D Cell Dissection Lab", target: 'start_dissect' }
+    ]
+  },
+  {
+    id: 'post_dissect',
+    speaker: 'Kai Cruz',
+    speakerClass: 'kai',
+    char: 'kai',
+    forest: false,
+    text: "Great job identifying those organelles! Now test your mastery in our <strong>Cellular Factory Tycoon</strong>—respond to real environmental stress events in real time!",
+    choices: [
+      { text: "Launch Cellular Factory Tycoon", target: 'start_tycoon' }
+    ]
+  },
+  {
+    id: 'post_tycoon',
+    speaker: 'Zoe Chen',
+    speakerClass: 'zoe',
+    char: 'zoe',
+    forest: false,
+    text: "You balanced the cell's energy and turgor perfectly! Now let's explore <strong>Specialised Cells</strong> with custom 3D adaptations for specialized jobs.",
+    choices: [
+      { text: "Open Specialised Cell RPG Deck", target: 'start_rpg' }
+    ]
+  },
+  {
+    id: 'post_rpg',
+    speaker: 'Dr. Elena Vance',
+    speakerClass: 'elena',
+    char: 'elena',
+    forest: false,
+    text: "Structure strictly follows function! Now let's connect specialized cells into complete hierarchical biological systems in our <strong>3D Body Hologram</strong>.",
+    choices: [
+      { text: "Start '3D Body Hierarchy Assembly'", target: 'start_hierarchy' }
+    ]
+  },
+  {
+    id: 'post_hierarchy',
+    speaker: 'Dr. Elena Vance',
+    speakerClass: 'elena',
+    char: 'elena',
+    forest: true,
+    text: "Outstanding work, Cadet! You have mastered cell biology from individual organelles to the entire living multicellular organism.",
+    choices: [
+      { text: "Review Findings & Generate IB Bio-Certificate", target: 'start_certificate' }
+    ]
+  }
+];
+
+const VN = (function(){
+  let currentNode = null;
+  let isTyping = false;
+  let fullText = '';
+  let charIndex = 0;
+  let typeTimer = null;
+  const historyLog = [];
+
+  const speakerEl = document.getElementById('speaker-badge');
+  const textEl = document.getElementById('typewriter-text');
+  const avatarImg = document.getElementById('avatar-img');
+  const avatarFrame = document.getElementById('avatar-frame');
+  const emoteEl = document.getElementById('char-emote');
+  const choiceBox = document.getElementById('choice-container');
+  const controlsBar = document.getElementById('dialogue-controls-bar');
+  const forestBg = document.getElementById('forest-bg-layer');
+  const vnBox = document.getElementById('vn-box');
+  const minBtn = document.getElementById('btn-minimize-vn');
+
+  let isCollapsed = false;
+  minBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    isCollapsed = !isCollapsed;
+    vnBox.classList.toggle('collapsed', isCollapsed);
+    minBtn.textContent = isCollapsed ? 'Expand (+)' : 'Minimize (–)';
+  });
+
+  function triggerCharacterReaction(type){
+    if(type==='happy'){
+      avatarFrame.style.transform = 'translateY(-16px) scale(1.04)';
+      emoteEl.textContent = 'Awesome! ✨';
+      emoteEl.className = 'emote-bubble show';
+      setTimeout(()=>{ avatarFrame.style.transform = 'translateY(0) scale(1)'; emoteEl.className = 'emote-bubble'; }, 1000);
+    } else if(type==='wrong'){
+      avatarFrame.style.transform = 'translateX(-8px)';
+      emoteEl.textContent = 'Oops! 💧';
+      emoteEl.className = 'emote-bubble show';
+      setTimeout(()=>{ avatarFrame.style.transform = 'translateX(8px)'; }, 100);
+      setTimeout(()=>{ avatarFrame.style.transform = 'translateX(-5px)'; }, 200);
+      setTimeout(()=>{ avatarFrame.style.transform = 'translateX(0)'; emoteEl.className = 'emote-bubble'; }, 600);
+    }
+  }
+
+  function showNode(nodeId){
+    const node = STORY_NODES.find(n=>n.id===nodeId);
+    if(!node) return;
+    currentNode = node;
+
+    vnBox.classList.remove('activity-mode', 'collapsed');
+    isCollapsed = false;
+    minBtn.textContent = 'Minimize (–)';
+
+    speakerEl.textContent = node.speaker;
+    speakerEl.className = 'speaker-tag ' + (node.speakerClass || 'cadet');
+    
+    if(CHAR_PORTRAITS[node.char]){ avatarImg.src = CHAR_PORTRAITS[node.char]; }
+    if(node.forest){ forestBg.classList.remove('dim'); }
+    else { forestBg.classList.add('dim'); }
+
+    fullText = node.text;
+    textEl.innerHTML = '';
+    charIndex = 0;
+    isTyping = true;
+    choiceBox.style.display = 'none';
+    choiceBox.innerHTML = '';
+    controlsBar.style.display = 'flex';
+
+    if(typeTimer) clearInterval(typeTimer);
+    historyLog.push({ speaker: node.speaker, text: fullText });
+    updateLogView();
+
+    // Trigger natural character voice synthesis
+    VoiceEngine.speak(node.text, node.char || 'elena');
+
+    typeTimer = setInterval(()=>{
+      if(charIndex < fullText.length){
+        if(fullText[charIndex] === '<'){
+          const closeTag = fullText.indexOf('>', charIndex);
+          if(closeTag !== -1) charIndex = closeTag + 1;
+          else charIndex++;
+        } else {
+          charIndex++;
+          if(charIndex % 3 === 0) AudioEngine.playBlip(560 + (charIndex%6)*30, 0.02);
+        }
+        textEl.innerHTML = fullText.slice(0, charIndex);
+      } else {
+        finishTyping();
+      }
+    }, 20);
+  }
+
+  function finishTyping(){
+    clearInterval(typeTimer);
+    textEl.innerHTML = fullText;
+    isTyping = false;
+
+    if(currentNode.choices && currentNode.choices.length > 0){
+      controlsBar.style.display = 'none';
+      choiceBox.style.display = 'flex';
+      choiceBox.innerHTML = '';
+      currentNode.choices.forEach(ch=>{
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `<span>${ch.text}</span><span class="choice-arrow">→</span>`;
+        btn.addEventListener('click', ()=>{
+          AudioEngine.playClick();
+          handleBranch(ch.target);
+        });
+        choiceBox.appendChild(btn);
+      });
+    }
+  }
+
+  function advance(){
+    if(isTyping){ finishTyping(); return; }
+    if(currentNode.choices && currentNode.choices.length > 0) return;
+    const idx = STORY_NODES.findIndex(n=>n.id===currentNode.id);
+    if(idx !== -1 && idx < STORY_NODES.length - 1){
+      showNode(STORY_NODES[idx+1].id);
+    }
+  }
+
+  function handleBranch(target){
+    VoiceEngine.stop();
+    if(target==='start_dissect'){
+      vnBox.classList.add('activity-mode');
+      ActivityDissection.init();
+    } else if(target==='start_tycoon'){
+      vnBox.classList.add('activity-mode');
+      ActivityTycoon.init();
+    } else if(target==='start_rpg'){
+      vnBox.classList.add('activity-mode');
+      ActivityRPG.init();
+    } else if(target==='start_hierarchy'){
+      vnBox.classList.add('activity-mode');
+      ActivityHierarchy.init();
+    } else if(target==='start_certificate'){
+      vnBox.classList.remove('activity-mode');
+      ActivityCertificate.init();
+    } else {
+      showNode(target);
+    }
+  }
+
+  function updateLogView(){
+    document.getElementById('modal-log-content').innerHTML = historyLog.map(h=>`
+      <div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <strong style="color:var(--teal-prime); font-size:12.5px; text-transform:uppercase;">${h.speaker}</strong>
+        <p style="margin-top:4px; font-size:13.5px;">${h.text}</p>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('btn-vn-next').addEventListener('click', advance);
+  document.getElementById('btn-vn-skip').addEventListener('click', finishTyping);
+  const speakBtn = document.getElementById('btn-vn-speak');
+  if(speakBtn){
+    speakBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(currentNode){
+        VoiceEngine.speak(currentNode.text, currentNode.char || 'elena');
+      }
+    });
+  }
+  window.addEventListener('keydown', e=>{
+    if(e.code==='Space' && !document.querySelector('.modal-backdrop.open')){ advance(); }
+  });
+
+  return {
+    start(){ showNode('forest_intro_1'); },
+    resume(nodeId){ showNode(nodeId); },
+    react(type){ triggerCharacterReaction(type); }
+  };
+})();
+
+/* Modals */
+document.getElementById('btn-mission-log').addEventListener('click', ()=>{
+  document.getElementById('modal-log').classList.add('open'); AudioEngine.playClick();
+});
+document.getElementById('btn-close-log').addEventListener('click', ()=>document.getElementById('modal-log').classList.remove('open'));
+document.getElementById('btn-close-log-footer').addEventListener('click', ()=>document.getElementById('modal-log').classList.remove('open'));
+
+document.getElementById('btn-dossier').addEventListener('click', ()=>{
+  document.getElementById('modal-dossier').classList.add('open'); AudioEngine.playClick();
+});
+document.getElementById('btn-close-dossier').addEventListener('click', ()=>document.getElementById('modal-dossier').classList.remove('open'));
+document.getElementById('btn-close-dossier-footer').addEventListener('click', ()=>document.getElementById('modal-dossier').classList.remove('open'));
+
+
+/* =========================================================================
+   5. THREE.JS 3D RIG BUILDER
+   ========================================================================= */
+function setupThreeRig(canvas){
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  
+  const amb = new THREE.AmbientLight(0xffffff, 0.85);
+  const dir1 = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir1.position.set(6, 10, 8);
+  const dir2 = new THREE.DirectionalLight(0x4ba3e3, 0.45);
+  dir2.position.set(-6, -4, -6);
+  scene.add(amb, dir1, dir2);
+
+  const orbit = {
+    theta: 0.5, phi: 1.2, radius: 8, minR: 3.5, maxR: 28,
+    target: new THREE.Vector3(0,0,0)
+  };
+  let dragging = false, lx = 0, ly = 0;
+
+  canvas.addEventListener('pointerdown', e=>{
+    dragging = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointerup', ()=>dragging=false);
+  canvas.addEventListener('pointercancel', ()=>dragging=false);
+  canvas.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const dx = e.clientX - lx, dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY;
+    orbit.theta -= dx * 0.006;
+    orbit.phi -= dy * 0.006;
+    orbit.phi = Math.max(0.3, Math.min(Math.PI - 0.3, orbit.phi));
+  });
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    orbit.radius += e.deltaY * 0.01;
+    orbit.radius = Math.max(orbit.minR, Math.min(orbit.maxR, orbit.radius));
+  }, {passive:false});
+
+  function updateCamera(){
+    camera.position.set(
+      orbit.target.x + orbit.radius * Math.sin(orbit.phi) * Math.sin(orbit.theta),
+      orbit.target.y + orbit.radius * Math.cos(orbit.phi),
+      orbit.target.z + orbit.radius * Math.sin(orbit.phi) * Math.cos(orbit.theta)
+    );
+    camera.lookAt(orbit.target);
+  }
+
+  function resize(){
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if(w===0 || h===0) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+
+  function projectToScreen(vec3){
+    const v = vec3.clone().project(camera);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    return { x: (v.x*0.5+0.5)*w, y: (-v.y*0.5+0.5)*h, z: v.z };
+  }
+
+  return { renderer, scene, camera, orbit, updateCamera, resize, projectToScreen };
+}
+
+function bioMat(color, opts={}){
+  return new THREE.MeshPhongMaterial(Object.assign({ color, shininess: 35 }, opts));
+}
+
+
+function createRoundedPrismGeometry(w, h, d, r=0.6, s=12){
+  const shape = new THREE.Shape();
+  const hw = w/2, hh = h/2;
+  const radius = Math.min(r, hw - 0.05, hh - 0.05);
+  shape.moveTo(-hw + radius, -hh);
+  shape.lineTo(hw - radius, -hh);
+  shape.quadraticCurveTo(hw, -hh, hw, -hh + radius);
+  shape.lineTo(hw, hh - radius);
+  shape.quadraticCurveTo(hw, hh, hw - radius, hh);
+  shape.lineTo(-hw + radius, hh);
+  shape.quadraticCurveTo(-hw, hh, -hw, hh - radius);
+  shape.lineTo(-hw, -hh + radius);
+  shape.quadraticCurveTo(-hw, -hh, -hw + radius, -hh);
+
+  const extrudeSettings = {
+    depth: Math.max(0.1, d - radius * 2),
+    bevelEnabled: true,
+    bevelSegments: s,
+    steps: 1,
+    bevelSize: radius,
+    bevelThickness: radius,
+    curveSegments: s
+  };
+  const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  geo.center();
+  return geo;
+}
+
+
+/* =========================================================================
+   6. ACTIVITY 1: 3D ANIMAL & PLANT CELL DISSECTION LAB
+   ========================================================================= */
+const ActivityDissection = (function(){
+  let three = null;
+  let currentType = 'animal';
+  const clickables = [];
+  const foundSet = new Set();
+  const raycaster = new THREE.Raycaster();
+  let selectedId = null;
+  let showLabels = true;
+
+  const ORGANELLES = {
+    mem: { id: 'mem', name: 'Plasma Membrane', cat: 'BARRIER & TRANSPORT', desc: 'Semi-permeable phospholipid bilayer that controls which ions, nutrients, and waste enter and exit the cell.' },
+    nucleus: { id: 'nucleus', name: 'Nucleus & Nucleolus', cat: 'GENETIC CONTROL', desc: 'Houses DNA chromosomes and directs all cellular activities. The inner nucleolus synthesizes ribosome subunits.' },
+    mito: { id: 'mito', name: 'Mitochondria (with Cristae)', cat: 'CELLULAR RESPIRATION', desc: 'The powerhouse of the cell. Converts glucose and oxygen into ATP chemical energy along inner folded cristae.' },
+    er: { id: 'er', name: 'Rough & Smooth ER', cat: 'PROTEIN & LIPID PROCESSING', desc: 'Extensive membrane network. Rough ER is studded with ribosomes for protein folding; Smooth ER synthesizes essential lipids.' },
+    golgi: { id: 'golgi', name: 'Golgi Apparatus & Vesicles', cat: 'PACKAGING & SORTING', desc: 'Stack of flattened cisternae discs that modifies, tags, and packages proteins into secretory transport vesicles.' },
+    centri: { id: 'centri', name: 'Centrosome & Centrioles', cat: 'CELL DIVISION', desc: 'Pair of perpendicular microtubule barrels that organize spindle fibers during mitosis. Unique to animal cells!' },
+    lyso: { id: 'lyso', name: 'Lysosomes', cat: 'ENZYMATIC DIGESTION', desc: 'Spherical vesicles containing digestive hydrolytic enzymes that break down cellular debris, waste, and foreign invaders.' },
+    vacuole_lg: { id: 'vacuole_lg', name: 'Large Permanent Vacuole', cat: 'TURGOR STORAGE', desc: 'Large fluid-filled central sac in plant cells storing water and mineral sap, providing vital hydrostatic turgor pressure against the cell wall.' },
+    wall: { id: 'wall', name: 'Cell Wall (Cellulose)', cat: 'STRUCTURAL SUPPORT', desc: 'Strong, semi-rigid outer cellulose framework in plant cells that maintains rigid cell shape and prevents osmotic bursting.' },
+    chloro: { id: 'chloro', name: 'Chloroplasts (with Grana)', cat: 'PHOTOSYNTHESIS', desc: 'Double-membraned green organelles containing chlorophyll. Captures solar photon energy to synthesize glucose from CO2 and water.' },
+    cytoplasm: { id: 'cytoplasm', name: 'Cytoplasm / Cytosol', cat: 'METABOLIC MATRIX', desc: 'Jelly-like aqueous fluid filling the cell where metabolic biochemical reactions happen and organelles are suspended in streaming cyclosis.' },
+    ribo: { id: 'ribo', name: 'Ribosomes', cat: 'PROTEIN SYNTHESIS', desc: 'Microscopic molecular protein factories scattered in the cytosol and dotting rough ER that translate mRNA into peptide chains.' },
+    amylo: { id: 'amylo', name: 'Amyloplasts (Starch Granules)', cat: 'STARCH STORAGE', desc: 'Non-pigmented plastids (leucoplasts) specialized for synthesizing and storing insoluble amylopectin starch reserves in plant cells.' },
+    plasmo: { id: 'plasmo', name: 'Plasmodesmata Channels', cat: 'INTERCELLULAR TRANSPORT', desc: 'Microscopic cytoplasmic tunnels penetrating the cellulose wall, allowing direct symplastic transport of nutrients and signals between adjacent plant cells.' },
+    peroxi: { id: 'peroxi', name: 'Peroxisomes / Microbodies', cat: 'OXIDATIVE DETOXIFICATION', desc: 'Membrane-bound metabolic organelles containing catalase enzymes to break down toxic hydrogen peroxide produced during photorespiration.' }
+  };
+
+  function pushClickable(scene, mesh, data, isEnvelope=false){
+    scene.add(mesh);
+    clickables.push({ mesh, data, envelope: !!isEnvelope });
+  }
+
+  function buildDetailedAnimalCell(scene){
+    // 1. Plasma Membrane
+    const memGeo = new THREE.SphereGeometry(2.35, 36, 36, 0, Math.PI * 1.65, 0, Math.PI);
+    const memMesh = new THREE.Mesh(memGeo, bioMat(0x6fb8db, { transparent: true, opacity: 0.22, side: THREE.DoubleSide }));
+    pushClickable(scene, memMesh, ORGANELLES.mem, true);
+
+    // 2. Cytoplasm
+    const cytoMesh = new THREE.Mesh(new THREE.SphereGeometry(2.2, 28, 28), bioMat(0x2ebfa5, { transparent: true, opacity: 0.08, side: THREE.DoubleSide }));
+    pushClickable(scene, cytoMesh, ORGANELLES.cytoplasm, true);
+
+    // 3. Nucleus & Nucleolus
+    const nucGroup = new THREE.Group();
+    const nucOuter = new THREE.Mesh(new THREE.SphereGeometry(0.85, 28, 28), bioMat(0x8c68cd));
+    const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.35, 18, 18), bioMat(0x4a2a75));
+    nucleolus.position.set(0.1, 0.1, 0.1);
+    nucGroup.add(nucOuter, nucleolus);
+    nucGroup.position.set(-0.2, 0.2, 0.1);
+    pushClickable(scene, nucGroup, ORGANELLES.nucleus);
+
+    // 4. Mitochondria
+    [[1.3, 0.7, 0.6], [-1.2, -0.8, 0.7], [0.9, -1.1, -0.7], [-1.2, 0.8, -0.6]].forEach((p, idx)=>{
+      const mito = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), bioMat(0xe6a13b));
+      mito.scale.set(1.8, 0.85, 0.85);
+      mito.position.set(...p);
+      mito.rotation.z = idx * 0.6;
+      pushClickable(scene, mito, ORGANELLES.mito);
+    });
+
+    // 5. Endoplasmic Reticulum
+    const erGroup = new THREE.Group();
+    for(let i=0; i<4; i++){
+      const sheet = new THREE.Mesh(new THREE.TorusGeometry(0.55 + i*0.14, 0.04, 8, 24, Math.PI*1.1), bioMat(0x4ba3e3));
+      sheet.rotation.x = Math.PI/2;
+      sheet.position.y = (i - 1.5) * 0.09;
+      erGroup.add(sheet);
+    }
+    erGroup.position.set(-0.2, 0.2, 0.1);
+    pushClickable(scene, erGroup, ORGANELLES.er);
+
+    // 6. Ribosomes (clusters of protein synthesis complexes)
+    const riboGroup = new THREE.Group();
+    const riboCoords = [
+      [-0.4, 0.7, 0.3], [-0.1, 0.8, -0.2], [0.3, 0.5, 0.4], [-0.6, -0.3, 0.5],
+      [0.6, -0.4, 0.6], [-0.5, 0.3, -0.5], [0.5, 0.1, -0.5], [-0.3, -0.7, 0.3]
+    ];
+    riboCoords.forEach(pos=>{
+      const r = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), bioMat(0xffd166, { shininess: 80 }));
+      r.position.set(...pos);
+      riboGroup.add(r);
+    });
+    pushClickable(scene, riboGroup, ORGANELLES.ribo);
+
+    // 7. Golgi Apparatus & Vesicles
+    const golgiGroup = new THREE.Group();
+    for(let i=0; i<4; i++){
+      const disc = new THREE.Mesh(new THREE.TorusGeometry(0.32 - i*0.03, 0.04, 8, 20), bioMat(0xe26346));
+      disc.rotation.x = Math.PI/2;
+      disc.position.y = i * 0.1;
+      golgiGroup.add(disc);
+    }
+    for(let i=0; i<4; i++){
+      const v = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), bioMat(0xe26346));
+      v.position.set((Math.random()-0.5)*0.5, i*0.12 + 0.1, 0.35);
+      golgiGroup.add(v);
+    }
+    golgiGroup.position.set(1.2, -0.6, 0.8);
+    golgiGroup.rotation.z = 0.4;
+    pushClickable(scene, golgiGroup, ORGANELLES.golgi);
+
+    // 8. Centrioles & Centrosome
+    const centriGroup = new THREE.Group();
+    const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.38, 10), bioMat(0x1fa37c));
+    const c2 = c1.clone();
+    c2.rotation.z = Math.PI/2; c2.position.set(0.12, 0.1, 0);
+    centriGroup.add(c1, c2);
+    centriGroup.position.set(-0.9, -0.4, 1.1);
+    pushClickable(scene, centriGroup, ORGANELLES.centri);
+
+    // 9. Lysosomes
+    [[-1.1, -1.0, -0.4], [0.4, -1.3, 0.6]].forEach(p=>{
+      const l = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 14), bioMat(0x3ea08e));
+      l.position.set(...p);
+      pushClickable(scene, l, ORGANELLES.lyso);
+    });
+  }
+
+  function buildDetailedPlantCell(scene){
+    // 1. ROUNDED CELL WALL (Cellulose rounded boundary with smooth curved edges)
+    const wallGeo = createRoundedPrismGeometry(4.8, 3.8, 3.8, 0.65, 12);
+    const wallMesh = new THREE.Mesh(wallGeo, bioMat(0x1fa37c, { transparent: true, opacity: 0.15, side: THREE.DoubleSide }));
+    const wallEdges = new THREE.LineSegments(new THREE.EdgesGeometry(wallGeo, 22), new THREE.LineBasicMaterial({ color: 0x38d9a9, linewidth: 2, transparent: true, opacity: 0.55 }));
+    wallMesh.add(wallEdges);
+    pushClickable(scene, wallMesh, ORGANELLES.wall, true);
+
+    // 2. PLASMODESMATA (Intercellular communication channels traversing cell wall)
+    const plasmoGroup = new THREE.Group();
+    const plasmoCoords = [
+      [2.35, 0.6, 0], [-2.35, -0.5, 0], [0, 1.85, 0.7], [0, -1.85, -0.7]
+    ];
+    plasmoCoords.forEach(p=>{
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.32, 10), bioMat(0x52b788, { emissive: 0x136052 }));
+      tube.position.set(...p);
+      if(Math.abs(p[0]) > 1) tube.rotation.z = Math.PI/2;
+      plasmoGroup.add(tube);
+    });
+    pushClickable(scene, plasmoGroup, ORGANELLES.plasmo);
+
+    // 3. INNER PLASMA MEMBRANE
+    const memGeo = createRoundedPrismGeometry(4.35, 3.35, 3.35, 0.5, 12);
+    const memMesh = new THREE.Mesh(memGeo, bioMat(0x4ba3e3, { transparent: true, opacity: 0.12, side: THREE.DoubleSide }));
+    pushClickable(scene, memMesh, ORGANELLES.mem, true);
+
+    // 4. CYTOPLASM / CYTOSOL (Translucent fluid matrix)
+    const cytoGeo = createRoundedPrismGeometry(4.2, 3.2, 3.2, 0.45, 10);
+    const cytoMesh = new THREE.Mesh(cytoGeo, bioMat(0x2ebfa5, { transparent: true, opacity: 0.07, side: THREE.DoubleSide }));
+    pushClickable(scene, cytoMesh, ORGANELLES.cytoplasm, true);
+
+    // 5. LARGE PERMANENT VACUOLE (Central water & sap reservoir)
+    const vac = new THREE.Mesh(new THREE.SphereGeometry(1.48, 28, 28), bioMat(0x56b8e6, { transparent: true, opacity: 0.28, shininess: 85 }));
+    vac.position.set(0.1, -0.05, 0);
+    pushClickable(scene, vac, ORGANELLES.vacuole_lg);
+
+    // 6. NUCLEUS & NUCLEOLUS (Placed in peripheral cytoplasm)
+    const nucGroup = new THREE.Group();
+    const nucOuter = new THREE.Mesh(new THREE.SphereGeometry(0.68, 24, 24), bioMat(0x8c68cd));
+    const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), bioMat(0x4a2a75));
+    nucleolus.position.set(0.08, 0.08, 0.08);
+    nucGroup.add(nucOuter, nucleolus);
+    nucGroup.position.set(-1.4, 0.9, 0.6);
+    pushClickable(scene, nucGroup, ORGANELLES.nucleus);
+
+    // 7. ROUGH & SMOOTH ER
+    const erGroup = new THREE.Group();
+    for(let i=0; i<3; i++){
+      const sheet = new THREE.Mesh(new THREE.TorusGeometry(0.5 + i*0.12, 0.035, 8, 20, Math.PI*1.1), bioMat(0x4ba3e3));
+      sheet.rotation.x = Math.PI/2;
+      sheet.position.y = (i - 1) * 0.09;
+      erGroup.add(sheet);
+    }
+    erGroup.position.set(-1.4, 0.9, 0.6);
+    pushClickable(scene, erGroup, ORGANELLES.er);
+
+    // 8. RIBOSOMES (Protein translation granules)
+    const riboGroup = new THREE.Group();
+    const plantRiboCoords = [
+      [-1.1, 1.2, 0.8], [-1.6, 0.5, 0.8], [-1.0, 0.5, 1.0], [-0.5, 1.2, 0.5],
+      [1.1, 1.2, -0.4], [0.5, -1.2, 0.8], [-0.8, -1.0, 0.6], [1.2, -0.4, 0.9]
+    ];
+    plantRiboCoords.forEach(pos=>{
+      const r = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), bioMat(0xffd166, { shininess: 85 }));
+      r.position.set(...pos);
+      riboGroup.add(r);
+    });
+    pushClickable(scene, riboGroup, ORGANELLES.ribo);
+
+    // 9. GOLGI APPARATUS & SECRETORY VESICLES
+    const golgiGroup = new THREE.Group();
+    for(let i=0; i<3; i++){
+      const disc = new THREE.Mesh(new THREE.TorusGeometry(0.28 - i*0.03, 0.035, 8, 18), bioMat(0xe26346));
+      disc.rotation.x = Math.PI/2;
+      disc.position.y = i * 0.09;
+      golgiGroup.add(disc);
+    }
+    for(let i=0; i<3; i++){
+      const v = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), bioMat(0xe26346));
+      v.position.set((Math.random()-0.5)*0.4, i*0.1 + 0.05, 0.25);
+      golgiGroup.add(v);
+    }
+    golgiGroup.position.set(1.3, -0.8, 0.8);
+    golgiGroup.rotation.z = 0.4;
+    pushClickable(scene, golgiGroup, ORGANELLES.golgi);
+
+    // 10. CHLOROPLASTS (6 green photosynthetic organelles with grana stacks)
+    const chloroPositions = [
+      [1.7, 1.1, 0.7],
+      [-1.7, -1.0, 0.7],
+      [1.6, -1.0, -0.7],
+      [-1.6, 1.0, -0.7],
+      [0.0, 1.4, -0.8],
+      [0.0, -1.3, 0.8]
+    ];
+    chloroPositions.forEach(p=>{
+      const cGroup = new THREE.Group();
+      const outer = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), bioMat(0x1fa37c, { shininess: 60 }));
+      outer.scale.set(1, 0.55, 0.75);
+      cGroup.add(outer);
+      for(let g=-1; g<=1; g++){
+        const grana = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.12, 8), bioMat(0x0e5e40));
+        grana.position.set(g*0.14, 0, 0);
+        cGroup.add(grana);
+      }
+      cGroup.position.set(...p);
+      pushClickable(scene, cGroup, ORGANELLES.chloro);
+    });
+
+    // 11. MITOCHONDRIA (3 golden energy converters with cristae)
+    const mitoPositions = [
+      [1.2, 0.4, 1.1],
+      [-0.7, -1.2, 1.0],
+      [0.8, -1.2, -0.9]
+    ];
+    mitoPositions.forEach((p, idx)=>{
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), bioMat(0xe6a13b, { shininess: 70 }));
+      m.scale.set(1.7, 0.8, 0.8);
+      m.position.set(...p);
+      m.rotation.z = idx * 0.7 + 0.3;
+      pushClickable(scene, m, ORGANELLES.mito);
+    });
+
+    // 12. AMYLOPLASTS (Starch Storage Plastids / Leucoplasts)
+    const amyloGroup = new THREE.Group();
+    [[-1.1, -0.8, -0.9], [0.8, 1.1, 0.85]].forEach(p=>{
+      const aMesh = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 14), bioMat(0xf4f1de, { transparent: true, opacity: 0.85, shininess: 50 }));
+      aMesh.scale.set(1.2, 0.8, 0.8);
+      aMesh.position.set(...p);
+      // inner starch grain
+      const grain = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), bioMat(0xdad7cd));
+      grain.position.set(0.04, 0, 0);
+      aMesh.add(grain);
+      amyloGroup.add(aMesh);
+    });
+    pushClickable(scene, amyloGroup, ORGANELLES.amylo);
+
+    // 13. PEROXISOMES (Metabolic detoxification microbodies)
+    const peroxiGroup = new THREE.Group();
+    [[0.9, -0.2, 1.2], [-0.8, 1.2, -0.9]].forEach(p=>{
+      const pMesh = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 14), bioMat(0x9d7ad9, { shininess: 65 }));
+      pMesh.position.set(...p);
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.07), bioMat(0x553488));
+      pMesh.add(core);
+      peroxiGroup.add(pMesh);
+    });
+    pushClickable(scene, peroxiGroup, ORGANELLES.peroxi);
+  }
+
+  function updateSpecimenHeader(){
+    const banner = document.getElementById('active-specimen-banner');
+    const badgeText = document.getElementById('specimen-text');
+    const badgeIcon = document.getElementById('specimen-icon');
+    const subTag = document.getElementById('specimen-subtag');
+    const topNavBadge = document.querySelector('.station-badge');
+    const toggleBtn = document.getElementById('btn-toggle-cell-type');
+    
+    if(currentType === 'plant'){
+      if(banner) banner.className = 'active-specimen-banner plant-mode';
+      if(badgeIcon) badgeIcon.textContent = '🌿';
+      if(badgeText) badgeText.textContent = 'SPECIMEN: PLANT CELL MATRIX (ALLIUM / MESOPHYLL)';
+      if(subTag) subTag.textContent = 'Eukaryotic Plant Cell · Cellulose Wall, Large Central Vacuole, Chloroplasts & Plasmodesmata';
+      document.getElementById('dissect-specimen-label').textContent = 'SPECIMEN: 🌿 PLANT CELL';
+      if(toggleBtn) toggleBtn.textContent = 'Switch to Animal Cell';
+      if(topNavBadge) topNavBadge.textContent = 'STATION 1 · PLANT CELL DISSECTION';
+    } else {
+      if(banner) banner.className = 'active-specimen-banner animal-mode';
+      if(badgeIcon) badgeIcon.textContent = '🫀';
+      if(badgeText) badgeText.textContent = 'SPECIMEN: ANIMAL CELL MATRIX (CHEEK EPITHELIUM)';
+      if(subTag) subTag.textContent = 'Eukaryotic Animal Cell · Plasma Membrane, Centrosomes & Lysosome Matrix';
+      document.getElementById('dissect-specimen-label').textContent = 'SPECIMEN: 🫀 ANIMAL CELL';
+      if(toggleBtn) toggleBtn.textContent = 'Switch to Plant Cell';
+      if(topNavBadge) topNavBadge.textContent = 'STATION 1 · ANIMAL CELL DISSECTION';
+    }
+  }
+
+  function selectOrganelle(data){
+    selectedId = data.id;
+    AudioEngine.playClick();
+    VN.react('happy');
+    document.getElementById('inspect-category').textContent = data.cat;
+    document.getElementById('inspect-title').textContent = data.name;
+    document.getElementById('inspect-desc').textContent = data.desc;
+    foundSet.add(data.id);
+    renderChecklist();
+    VoiceEngine.speak(`${data.name}. ${data.desc}`, 'elena');
+  }
+
+  function renderChecklist(){
+    const listEl = document.getElementById('dissect-checklist');
+    const items = currentType==='animal'
+      ? [ORGANELLES.mem, ORGANELLES.cytoplasm, ORGANELLES.nucleus, ORGANELLES.mito, ORGANELLES.er, ORGANELLES.ribo, ORGANELLES.golgi, ORGANELLES.centri, ORGANELLES.lyso]
+      : [ORGANELLES.wall, ORGANELLES.plasmo, ORGANELLES.mem, ORGANELLES.cytoplasm, ORGANELLES.vacuole_lg, ORGANELLES.nucleus, ORGANELLES.chloro, ORGANELLES.mito, ORGANELLES.er, ORGANELLES.ribo, ORGANELLES.golgi, ORGANELLES.amylo, ORGANELLES.peroxi];
+
+    listEl.innerHTML = items.map(it=>`
+      <div class="check-item-row ${foundSet.has(it.id)?'done':''} ${selectedId===it.id?'selected':''}" data-id="${it.id}">
+        <span>${it.name}</span>
+        <span class="check-dot"></span>
+      </div>
+    `).join('');
+
+    listEl.querySelectorAll('.check-item-row').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const it = items.find(x=>x.id===row.dataset.id);
+        if(it) selectOrganelle(it);
+      });
+    });
+
+    if(foundSet.size >= 5){
+      document.getElementById('btn-finish-dissect').style.display = 'flex';
+    }
+  }
+
+  function updateFloatingTags(){
+    const host = document.getElementById('dissect-tag-host');
+    host.innerHTML = '';
+    if(!showLabels && !selectedId) return;
+
+    const seenTags = new Set();
+    clickables.forEach(c=>{
+      if(seenTags.has(c.data.id) || c.envelope) return;
+      if(!showLabels && c.data.id !== selectedId) return;
+      seenTags.add(c.data.id);
+
+      const wp = new THREE.Vector3();
+      c.mesh.getWorldPosition(wp);
+      const dist = wp.length();
+      if(dist > 0.001){
+        wp.add(wp.clone().normalize().multiplyScalar(0.75));
+      } else {
+        wp.y += 0.8;
+      }
+
+      const sp = three.projectToScreen(wp);
+      if(sp.z > 1) return;
+
+      const tag = document.createElement('div');
+      tag.className = 'organelle-tag-label' + (c.data.id===selectedId ? ' selected' : '');
+      tag.textContent = c.data.name;
+      tag.style.left = sp.x + 'px';
+      tag.style.top = sp.y + 'px';
+      tag.addEventListener('click', (e)=>{ e.stopPropagation(); selectOrganelle(c.data); });
+      host.appendChild(tag);
+    });
+  }
+
+  function setupScene(){
+    const canvas = document.getElementById('dissect-canvas');
+    three = setupThreeRig(canvas);
+
+    function rebuild(){
+      while(three.scene.children.length > 3) three.scene.remove(three.scene.children[three.scene.children.length-1]);
+      clickables.length = 0;
+      if(currentType==='animal') buildDetailedAnimalCell(three.scene);
+      else buildDetailedPlantCell(three.scene);
+      updateSpecimenHeader();
+      renderChecklist();
+    }
+    rebuild();
+
+    function findItem(obj){
+      let o = obj;
+      while(o){
+        const it = clickables.find(c=>c.mesh===o);
+        if(it) return it;
+        o = o.parent;
+      }
+      return null;
+    }
+
+    canvas.addEventListener('click', e=>{
+      const rect = canvas.getBoundingClientRect();
+      const ndc = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      raycaster.setFromCamera(ndc, three.camera);
+      const hits = raycaster.intersectObjects(clickables.map(c=>c.mesh), true);
+      
+      let chosen = null;
+      for(const h of hits){
+        const it = findItem(h.object);
+        if(it && !it.envelope){ chosen = it; break; }
+      }
+      if(!chosen){
+        for(const h of hits){
+          const it = findItem(h.object);
+          if(it){ chosen = it; break; }
+        }
+      }
+
+      if(chosen) selectOrganelle(chosen.data);
+    });
+
+    document.getElementById('btn-toggle-cell-type').addEventListener('click', ()=>{
+      currentType = currentType==='animal' ? 'plant' : 'animal';
+      AudioEngine.playClick();
+      rebuild();
+      VoiceEngine.speak(currentType==='plant' ? "Switching specimen matrix to 3D Plant Cell." : "Switching specimen matrix to 3D Animal Cell.", 'zoe');
+    });
+
+    document.getElementById('btn-toggle-diagram').addEventListener('click', ()=>{
+      const box = document.getElementById('micro-diagram-box');
+      box.style.display = box.style.display==='none' ? 'block' : 'none';
+      AudioEngine.playClick();
+    });
+
+    document.getElementById('btn-toggle-labels').addEventListener('click', ()=>{
+      showLabels = !showLabels;
+      document.getElementById('btn-toggle-labels').textContent = showLabels ? 'Hide 3D Labels' : 'Show 3D Labels';
+      AudioEngine.playClick();
+    });
+
+    document.getElementById('btn-finish-dissect').addEventListener('click', ()=>{
+      AudioEngine.playSuccess();
+      VN.react('happy');
+      VoiceEngine.speak("All essential organelles identified! Ready to submit findings to Dr. Vance.", 'zoe');
+      document.getElementById('act-screen-dissection').classList.remove('active');
+      VN.resume('post_dissect');
+    });
+
+    function loop(){
+      requestAnimationFrame(loop);
+      if(!document.getElementById('act-screen-dissection').classList.contains('active')) return;
+      three.resize();
+      three.updateCamera();
+      three.renderer.render(three.scene, three.camera);
+      updateFloatingTags();
+    }
+    loop();
+  }
+
+  return {
+    init(){
+      document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('act-screen-dissection').classList.add('active');
+      if(!three) setupScene();
+      else updateSpecimenHeader();
+    }
+  };
+})();
+
+
+/* =========================================================================
+   7. ACTIVITY 2: 3D ANIMATED CELLULAR FACTORY TYCOON
+   ========================================================================= */
+const ActivityTycoon = (function(){
+  let three = null;
+  let round = 0;
+  let energy = 70, turgor = 80, struct = 90, protein = 60;
+  let vacuoleMesh = null, particleGroup = null;
+
+  const EVENTS = [
+    {
+      title: "DROUGHT & LOW WATER POTENTIAL",
+      desc: "Water is leaving the cell by osmosis! Vacuole volume is shrinking rapidly.",
+      targetFix: "vacuole",
+      effect: { energy: -10, turgor: +30, struct: +10, protein: 0 }
+    },
+    {
+      title: "SOLAR ECLIPSE: LIGHT DEFICIT",
+      desc: "Photosynthesis stopped! Cellular ATP is depleting without light energy.",
+      targetFix: "mito",
+      effect: { energy: +35, turgor: -5, struct: 0, protein: +10 }
+    },
+    {
+      title: "HIGH TURGOR PRESSURE SPIKE",
+      desc: "Sudden hypotonic flood of water! Cell is swelling towards maximum capacity.",
+      targetFix: "wall",
+      effect: { energy: -10, turgor: 0, struct: +35, protein: 0 }
+    },
+    {
+      title: "PROTEIN MATRIX REPAIR ORDER",
+      desc: "Membrane transport channels need urgent peptide restoration.",
+      targetFix: "er_ribo",
+      effect: { energy: -15, turgor: 0, struct: +15, protein: +40 }
+    }
+  ];
+
+  function buildTycoon3DFactory(scene){
+    const wallGeo = createRoundedPrismGeometry(4.8, 3.8, 3.8, 0.65, 12);
+    const wallMesh = new THREE.Mesh(wallGeo, bioMat(0x1fa37c, { transparent: true, opacity: 0.14, side: THREE.DoubleSide }));
+    const wallEdges = new THREE.LineSegments(new THREE.EdgesGeometry(wallGeo, 22), new THREE.LineBasicMaterial({ color: 0x2ebfa5, linewidth: 2, transparent: true, opacity: 0.6 }));
+    wallMesh.add(wallEdges);
+    scene.add(wallMesh);
+
+    vacuoleMesh = new THREE.Mesh(new THREE.SphereGeometry(1.5, 28, 28), bioMat(0x3a82c4, { transparent: true, opacity: 0.45 }));
+    vacuoleMesh.position.set(0.1, -0.05, 0);
+    scene.add(vacuoleMesh);
+
+    const mitoGroup = new THREE.Group();
+    [[0.9, -1.3, 1.0], [-0.7, 0.5, -1.4], [1.5, 0.4, -1.2]].forEach(p=>{
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 14), bioMat(0xe6a13b));
+      m.scale.set(1.7, 0.8, 0.8); m.position.set(...p);
+      mitoGroup.add(m);
+    });
+    scene.add(mitoGroup);
+
+    particleGroup = new THREE.Group();
+    for(let i=0; i<30; i++){
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshBasicMaterial({ color: 0xe6a13b }));
+      p.position.set((Math.random()-0.5)*3.6, (Math.random()-0.5)*2.8, (Math.random()-0.5)*2.8);
+      particleGroup.add(p);
+    }
+    scene.add(particleGroup);
+  }
+
+  function updateMeters(){
+    document.getElementById('meter-val-energy').textContent = energy + '%';
+    document.getElementById('bar-fill-energy').style.width = energy + '%';
+    document.getElementById('meter-val-turgor').textContent = turgor + '%';
+    document.getElementById('bar-fill-turgor').style.width = turgor + '%';
+    document.getElementById('meter-val-struct').textContent = struct + '%';
+    document.getElementById('bar-fill-struct').style.width = struct + '%';
+    document.getElementById('meter-val-protein').textContent = protein + '%';
+    document.getElementById('bar-fill-protein').style.width = protein + '%';
+
+    if(vacuoleMesh){
+      const scale = 0.6 + (turgor/100)*0.5;
+      vacuoleMesh.scale.set(scale, scale, scale);
+    }
+  }
+
+  function renderEvent(){
+    if(round >= EVENTS.length){
+      AudioEngine.playSuccess();
+      VN.react('happy');
+      VoiceEngine.speak("All cellular stress events stabilized! Excellent factory management, cadet.", 'kai');
+      document.getElementById('act-screen-tycoon').classList.remove('active');
+      VN.resume('post_tycoon');
+      return;
+    }
+
+    const cur = EVENTS[round];
+    document.getElementById('tycoon-round-label').textContent = `EVENT: ROUND ${round+1} / ${EVENTS.length}`;
+    document.getElementById('tycoon-event-title').textContent = cur.title;
+    document.getElementById('tycoon-event-desc').textContent = cur.desc;
+
+    // Kai Cruz speaks the emergency event challenge
+    VoiceEngine.speak(`Emergency event: ${cur.title}. ${cur.desc} Select the correct organelle countermeasure to restore homeostasis!`, 'kai');
+
+    const host = document.getElementById('tycoon-actions-host');
+    host.innerHTML = `
+      <button class="organelle-action-btn" data-action="vacuole"><span>Large Vacuole: Regulate Osmotic Turgor</span></button>
+      <button class="organelle-action-btn" data-action="mito"><span>Mitochondria: Boost ATP Output</span></button>
+      <button class="organelle-action-btn" data-action="wall"><span>Cell Wall: Reinforce Physical Barrier</span></button>
+      <button class="organelle-action-btn" data-action="er_ribo"><span>Ribosomes &amp; ER: Synthesize Proteins</span></button>
+    `;
+
+    host.querySelectorAll('.organelle-action-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const act = btn.dataset.action;
+        if(act === cur.targetFix){
+          AudioEngine.playSuccess();
+          VN.react('happy');
+          energy = Math.min(100, Math.max(10, energy + cur.effect.energy));
+          turgor = Math.min(100, Math.max(10, turgor + cur.effect.turgor));
+          struct = Math.min(100, Math.max(10, struct + cur.effect.struct));
+          protein = Math.min(100, Math.max(10, protein + cur.effect.protein));
+          updateMeters();
+          
+          btn.style.background = 'var(--teal-prime)';
+          btn.style.color = 'var(--ink-dark)';
+          host.querySelectorAll('button').forEach(b=>b.disabled=true);
+          
+          document.getElementById('tycoon-event-desc').textContent = 'Countermeasure Success! Homeostasis stabilized.';
+          VoiceEngine.speak("Countermeasure success! Homeostasis stabilized.", 'kai');
+          document.getElementById('btn-next-tycoon-round').style.display = 'flex';
+        } else {
+          AudioEngine.playWarning();
+          VN.react('wrong');
+          energy = Math.max(10, energy - 15);
+          struct = Math.max(10, struct - 10);
+          updateMeters();
+          document.getElementById('tycoon-event-desc').textContent = 'Incorrect organelle triggered! Resources dropped. Try another strategy!';
+          VoiceEngine.speak("Warning! Incorrect organelle triggered. Check the cell's energy and structure meters and try again!", 'kai');
+        }
+      });
+    });
+
+    document.getElementById('btn-next-tycoon-round').style.display = 'none';
+  }
+
+  function setupScene(){
+    const canvas = document.getElementById('tycoon-canvas');
+    three = setupThreeRig(canvas);
+    buildTycoon3DFactory(three.scene);
+
+    function loop(){
+      requestAnimationFrame(loop);
+      if(!document.getElementById('act-screen-tycoon').classList.contains('active')) return;
+      three.resize();
+      three.updateCamera();
+
+      if(particleGroup){
+        particleGroup.children.forEach(p=>{
+          p.position.y += 0.015;
+          if(p.position.y > 1.8) p.position.y = -1.8;
+        });
+      }
+      three.renderer.render(three.scene, three.camera);
+    }
+    loop();
+  }
+
+  return {
+    init(){
+      document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('act-screen-tycoon').classList.add('active');
+      if(!three) setupScene();
+      round = 0; energy = 70; turgor = 80; struct = 90; protein = 60;
+      updateMeters();
+      renderEvent();
+
+      document.getElementById('btn-next-tycoon-round').onclick = ()=>{
+        round++;
+        renderEvent();
+      };
+    }
+  };
+})();
+
+
+/* =========================================================================
+   8. ACTIVITY 3: SPECIALISED CELLS RPG DECK (WITH 3D MODELS)
+   ========================================================================= */
+const ActivityRPG = (function(){
+  let selectedCellId = null;
+  let currentMissionIdx = 0;
+  const cardScenes = {};
+
+  const RPG_CARDS = [
+    {
+      id: 'rbc',
+      name: 'Red Blood Cell',
+      tag: 'courier',
+      tagText: 'O2 COURIER',
+      sa: 'Ultra-High (Biconcave)',
+      speed: 'Rapid (Capillary Flow)',
+      special: 'No Nucleus (Max Space)',
+      desc: 'Biconcave disc shape increases surface area to volume ratio for rapid oxygen diffusion. Lacks a nucleus to maximize hemoglobin storage.',
+      sketchfabEmbed: '<iframe title="Red Blood Cell" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/43699fbe9bf4452facbfbab37867eb0d/embed?autostart=0&ui_theme=dark&ui_watermark=0"></iframe>',
+      attribution: '<a href="https://sketchfab.com/3d-models/red-blood-cell-43699fbe9bf4452facbfbab37867eb0d" target="_blank" rel="nofollow">Red Blood Cell</a> by James Bogucheski'
+    },
+    {
+      id: 'neuron',
+      name: 'Nerve Cell (Neuron)',
+      tag: 'signal',
+      tagText: 'ELECTRO-TRANSMITTER',
+      sa: 'Extended Axon (1m+)',
+      speed: 'Instant (120 m/s)',
+      special: 'Branching Dendrites',
+      desc: 'Long axon conducts electrical impulses over great distances across the body. Branching dendrites connect with multiple neighboring cells.',
+      sketchfabEmbed: '<iframe title="Nerve cell (neuron and oligo-dendrocyte)" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/1552b08138764c4897ac262cc5721792/embed?autostart=0&ui_theme=dark&ui_watermark=0"></iframe>',
+      attribution: '<a href="https://sketchfab.com/3d-models/nerve-cell-neuron-and-oligo-dendrocyte-1552b08138764c4897ac262cc5721792" target="_blank" rel="nofollow">Nerve cell</a> by Ebers'
+    },
+    {
+      id: 'root',
+      name: 'Root Hair Cell',
+      tag: 'harvester',
+      tagText: 'NUTRIENT HARVESTER',
+      sa: 'Massive Surface Area',
+      speed: 'Stationary (Root)',
+      special: 'Deep Osmotic Pull',
+      desc: 'Elongated outward protrusion dramatically multiplies surface area contact with soil moisture and dissolved mineral ions.',
+      sketchfabEmbed: '<iframe title="root hair cell" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/3db991a0777c4fb5b3b29573c0bb602d/embed?autostart=0&ui_theme=dark&ui_watermark=0"></iframe>',
+      attribution: '<a href="https://sketchfab.com/3d-models/root-hair-cell-3db991a0777c4fb5b3b29573c0bb602d" target="_blank" rel="nofollow">Root hair cell</a> by Pun1shR'
+    },
+    {
+      id: 'palisade',
+      name: 'Palisade Mesophyll',
+      tag: 'solar',
+      tagText: 'SOLAR DYNAMO',
+      sa: 'Columnar Density',
+      speed: 'Stationary (Leaf)',
+      special: 'Packed Chloroplasts',
+      desc: 'Tall column-shaped cells situated tightly under the upper leaf epidermis, packed with chloroplasts to maximize sunlight capture.',
+      sketchfabEmbed: '<iframe title="Leaf Cross Section Anatomy" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/e71bfcf145c742cdbbde168d0f9736b8/embed?autostart=0&ui_theme=dark&ui_watermark=0"></iframe>',
+      attribution: '<a href="https://sketchfab.com/3d-models/leaf-cross-section-anatomy-e71bfcf145c742cdbbde168d0f9736b8" target="_blank" rel="nofollow">Leaf Cross Section</a> by ZMS1992'
+    },
+    {
+      id: 'sperm',
+      name: 'Sperm Cell',
+      tag: 'navigator',
+      tagText: 'SPEED NAVIGATOR',
+      sa: 'Streamlined',
+      speed: 'Flagellar Propulsion',
+      special: 'Mitochondrial Midpiece',
+      desc: 'Streamlined head with genetic payload, powered by a midpiece packed with mitochondria to fuel its whipping flagellar tail.',
+      build3D(scene){
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.75, 16), bioMat(0x3c8d53));
+        head.rotation.x = Math.PI/2; head.position.x = -1.2;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-0.9,0,0), new THREE.Vector3(0,0.3,0),
+          new THREE.Vector3(0.9,-0.3,0), new THREE.Vector3(1.8,0.3,0),
+          new THREE.Vector3(2.6,-0.2,0)
+        ]);
+        const tail = new THREE.Mesh(new THREE.TubeGeometry(curve, 30, 0.055, 8, false), bioMat(0x6fb583));
+        scene.add(head, tail);
+      }
+    }
+  ];
+
+  const RPG_MISSIONS = [
+    {
+      targetId: 'rbc',
+      text: "EMERGENCY: Rapidly transport oxygen molecules through narrow, high-resistance capillaries without obstruction."
+    },
+    {
+      targetId: 'neuron',
+      text: "EMERGENCY: Transmit a high-speed electrochemical warning reflex over 1.2 meters from fingertip to spinal cord."
+    },
+    {
+      targetId: 'root',
+      text: "EMERGENCY: Maximize absorption of water and nitrates from arid soil during a prolonged dry spell."
+    }
+  ];
+
+  function setupCard3D(cardId, canvas){
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 5.5);
+
+    const amb = new THREE.AmbientLight(0xffffff, 0.85);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+    dir.position.set(4, 6, 5);
+    scene.add(amb, dir);
+
+    const def = RPG_CARDS.find(c=>c.id===cardId);
+    if(def && def.build3D) def.build3D(scene);
+
+    cardScenes[cardId] = { renderer, scene, camera, canvas };
+  }
+
+  function selectCard(cellId){
+    selectedCellId = cellId;
+    AudioEngine.playClick();
+    document.getElementById('btn-confirm-rpg-choice').disabled = false;
+    const container = document.getElementById('rpg-card-container');
+    container.querySelectorAll('.cell-rpg-card').forEach(c=>{
+      const isSel = c.dataset.id === selectedCellId;
+      c.classList.toggle('selected', isSel);
+      const pill = c.querySelector('.card-select-pill');
+      if(pill) pill.textContent = isSel ? '✓ SELECTED' : 'SELECT CELL';
+      const btn = c.querySelector('.card-select-btn');
+      if(btn) btn.innerHTML = `<span>${isSel ? '✓ Cell Selected' : 'Deploy This Cell'}</span>`;
+    });
+
+    const cardDef = RPG_CARDS.find(c => c.id === cellId);
+    if(cardDef){
+      VoiceEngine.speak(`${cardDef.name}: ${cardDef.desc}`, 'zoe');
+    }
+  }
+
+  function renderDeck(){
+    const container = document.getElementById('rpg-card-container');
+    container.innerHTML = RPG_CARDS.map(c=>`
+      <div class="cell-rpg-card ${selectedCellId===c.id?'selected':''}" data-id="${c.id}">
+        <div class="card-header">
+          <span class="card-class-tag ${c.tag}">${c.tagText}</span>
+          <button class="card-select-pill ${selectedCellId===c.id?'active':''}" data-id="${c.id}">
+            ${selectedCellId===c.id ? '✓ SELECTED' : 'SELECT CELL'}
+          </button>
+        </div>
+        <div class="card-3d-preview-box">
+          ${c.sketchfabEmbed ? c.sketchfabEmbed : `<canvas id="rpg-canvas-${c.id}"></canvas>`}
+        </div>
+        ${c.attribution ? `<div class="card-sketchfab-attr">3D Model: ${c.attribution}</div>` : ''}
+        <div class="card-name">${c.name}</div>
+        <div class="card-adaptation-box">${c.desc}</div>
+        <div style="margin-top:auto;">
+          <div class="card-stat-row"><span>Surface Area:</span><span class="card-stat-val">${c.sa}</span></div>
+          <div class="card-stat-row"><span>Mobility:</span><span class="card-stat-val">${c.speed}</span></div>
+          <div class="card-stat-row"><span>Perk:</span><span class="card-stat-val" style="color:var(--amber);">${c.special}</span></div>
+        </div>
+        <button class="choice-btn card-select-btn" data-id="${c.id}" style="margin-top:8px; padding:7px 12px; font-size:12px; justify-content:center;">
+          <span>${selectedCellId===c.id ? '✓ Cell Selected' : 'Deploy This Cell'}</span>
+        </button>
+      </div>
+    `).join('');
+
+    RPG_CARDS.forEach(c=>{
+      if(!c.sketchfabEmbed){
+        const cv = document.getElementById(`rpg-canvas-${c.id}`);
+        if(cv) setupCard3D(c.id, cv);
+      }
+    });
+
+    container.querySelectorAll('.cell-rpg-card').forEach(card=>{
+      card.addEventListener('click', (e)=>{
+        if(e.target.tagName.toLowerCase() === 'a') return;
+        selectCard(card.dataset.id);
+      });
+    });
+
+    container.querySelectorAll('.card-select-pill, .card-select-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        selectCard(btn.dataset.id);
+      });
+    });
+  }
+
+  function setupMission(){
+    if(currentMissionIdx >= RPG_MISSIONS.length){
+      AudioEngine.playSuccess();
+      VN.react('happy');
+      VoiceEngine.speak("All emergency missions resolved! Outstanding biological problem solving, cadet.", 'zoe');
+      document.getElementById('act-screen-rpg').classList.remove('active');
+      VN.resume('post_rpg');
+      return;
+    }
+    const mission = RPG_MISSIONS[currentMissionIdx];
+    document.getElementById('rpg-challenge-text').textContent = mission.text;
+    selectedCellId = null;
+    document.getElementById('btn-confirm-rpg-choice').disabled = true;
+    renderDeck();
+
+    // Zoe Chen speaks the emergency challenge
+    VoiceEngine.speak(`Mission challenge: ${mission.text} Select the specialized cell class with the best structural adaptation.`, 'zoe');
+  }
+
+  document.getElementById('btn-confirm-rpg-choice').addEventListener('click', ()=>{
+    const mission = RPG_MISSIONS[currentMissionIdx];
+    if(selectedCellId === mission.targetId){
+      AudioEngine.playSuccess();
+      VN.react('happy');
+      const chosen = RPG_CARDS.find(c => c.id === selectedCellId);
+      VoiceEngine.speak(`Success! The ${chosen ? chosen.name : 'cell'} structural adaptation resolves the challenge!`, 'zoe');
+      currentMissionIdx++;
+      setTimeout(()=>{ setupMission(); }, 1200);
+    } else {
+      AudioEngine.playWarning();
+      VN.react('wrong');
+      VoiceEngine.speak("Structural adaptation mismatch! Inspect the 3D cell features and choose another candidate.", 'zoe');
+      alert("Structural adaptation mismatch! Check the 3D cell structure and organelle specs to solve the challenge.");
+    }
+  });
+
+  function loop(){
+    requestAnimationFrame(loop);
+    if(!document.getElementById('act-screen-rpg').classList.contains('active')) return;
+    Object.keys(cardScenes).forEach(k=>{
+      const item = cardScenes[k];
+      if(item.canvas && item.canvas.clientWidth > 0){
+        item.renderer.setSize(item.canvas.clientWidth, item.canvas.clientHeight, false);
+        item.scene.rotation.y += 0.015;
+        item.renderer.render(item.scene, item.camera);
+      }
+    });
+  }
+  loop();
+
+  return {
+    init(){
+      document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('act-screen-rpg').classList.add('active');
+      currentMissionIdx = 0;
+      setupMission();
+    }
+  };
+})();
+
+
+/* =========================================================================
+   9. ACTIVITY 4: 3D ANATOMICAL BODY HIERARCHY SIMULATION
+   ========================================================================= */
+const ActivityHierarchy = (function(){
+  let three = null;
+  let activeTrack = 'human'; // 'human' | 'plant'
+  let activeLevel = 0;
+  let unlockedLevels = new Set([0]);
+
+  // Three.js object groups for Human Track
+  let bodySilhouette = null;
+  let skeletonGroup = null;
+  let vesselsGroup = null;
+  let bloodParticles = null;
+  let heartGroup = null;
+  let heartMesh = null;
+  let heartAorta = null;
+  let tissueGroup = null;
+  let cellGroup = null;
+  let calloutBeam = null;
+
+  // Three.js object groups for Plant Track
+  let plantGroup = null;
+  let plantTreeMesh = null;
+  let plantVesselsGroup = null;
+  let plantLeafGroup = null;
+  let plantTissueGroup = null;
+  let plantCellGroup = null;
+
+  // Camera animation target
+  let camTargetRadius = 18;
+  let camTargetLook = new THREE.Vector3(0, 0, 0);
+
+  const HUMAN_TIERS = [
+    {
+      level: 0,
+      tag: 'TIER 1 — CELL',
+      name: 'Cardiac Muscle Cell',
+      componentName: 'CARDIOMYOCYTE',
+      icon: '🔬',
+      desc: 'Individual cylindrical, branched contractile cell containing striated actin & myosin protein filaments, an elongated nucleus, and high-density mitochondria. Synchronized by intercalated gap junctions.',
+      concept: 'Cells are the fundamental building blocks of all living tissue. Each cardiomyocyte generates mechanical pulling force during contraction.',
+      zoomR: 6.5,
+      lookY: 0.6,
+      tagPos: new THREE.Vector3(1.8, 1.4, 0.4)
+    },
+    {
+      level: 1,
+      tag: 'TIER 2 — TISSUE',
+      name: 'Cardiac Muscle Tissue',
+      componentName: 'MYOCARDIUM TISSUE',
+      icon: '🧬',
+      desc: 'Synchronized sheet of interwoven cardiomyocytes bound by intercalated discs. Action potentials spread across the tissue rapidly, causing the entire muscle layer to contract as a unified syncytium.',
+      concept: 'Tissues consist of similar specialized cells grouped together to execute a specialized collective task that single cells cannot perform alone.',
+      zoomR: 9.5,
+      lookY: 0.6,
+      tagPos: new THREE.Vector3(-0.9, 1.2, 0.6)
+    },
+    {
+      level: 2,
+      tag: 'TIER 3 — ORGAN',
+      name: 'Heart (Cardiac Pump)',
+      componentName: 'HEART ORGAN',
+      icon: '🫀',
+      desc: 'A 4-chambered muscular organ constructed from cardiac muscle tissue (myocardium), connective pericardium, nervous conduction tissue, and endothelial valves, pumping ~5 liters of blood per minute.',
+      concept: 'Organs are anatomical structures constructed from different tissue types operating in harmony to achieve high-order physiological functions.',
+      zoomR: 13.0,
+      lookY: 0.5,
+      tagPos: new THREE.Vector3(0, 1.9, 0.2)
+    },
+    {
+      level: 3,
+      tag: 'TIER 4 — ORGAN SYSTEM',
+      name: 'Circulatory / Vascular System',
+      componentName: 'VASCULAR NETWORK',
+      icon: '🫁',
+      desc: 'Comprehensive closed network of the heart, high-pressure arteries (crimson), low-pressure veins (azure), and micro-capillaries circulating oxygen, nutrients, antibodies, and waste throughout the entire body.',
+      concept: 'Organ systems integrate multiple organs to perform systemic life-sustaining processes across the whole organism.',
+      zoomR: 22.0,
+      lookY: -0.5,
+      tagPos: new THREE.Vector3(0, 3.8, 0)
+    },
+    {
+      level: 4,
+      tag: 'TIER 5 — ORGANISM',
+      name: 'Human Body (Multicellular Organism)',
+      componentName: 'HOMO SAPIENS',
+      icon: '👤',
+      desc: 'The complete multicellular living individual. Interacting circulatory, nervous, digestive, respiratory, and musculoskeletal systems maintain constant cellular homeostasis.',
+      concept: 'An organism represents the highest hierarchy tier in individuals: all systems, organs, tissues, and cells cooperate to sustain life.',
+      zoomR: 26.0,
+      lookY: -0.5,
+      tagPos: new THREE.Vector3(0, 5.8, 0)
+    }
+  ];
+
+  const PLANT_TIERS = [
+    {
+      level: 0,
+      tag: 'TIER 1 — CELL',
+      name: 'Palisade Mesophyll Cell',
+      componentName: 'CHLOROPLAST CELL',
+      icon: '🔬',
+      desc: 'Tall columnar plant cell packed with chloroplasts and a large central vacuole to maximize light energy capture and drive glucose synthesis via photosynthesis.',
+      concept: 'Specialized plant cells synthesize carbohydrates from light, water, and CO2, forming the energetic foundation for the entire plant.',
+      zoomR: 7.0,
+      lookY: 0.5,
+      tagPos: new THREE.Vector3(1.8, 1.4, 0.4)
+    },
+    {
+      level: 1,
+      tag: 'TIER 2 — TISSUE',
+      name: 'Mesophyll Photosynthetic Tissue',
+      componentName: 'MESOPHYLL LAYER',
+      icon: '🧬',
+      desc: 'Layered sheet of tightly packed palisade cells and loose spongy mesophyll cells designed for efficient gas diffusion and solar absorption.',
+      concept: 'Plant tissues group specialized cells into functional sheets: epidermis for protection, mesophyll for photosynthesis, xylem/phloem for transport.',
+      zoomR: 10.0,
+      lookY: 0.5,
+      tagPos: new THREE.Vector3(-0.9, 1.2, 0.6)
+    },
+    {
+      level: 2,
+      tag: 'TIER 3 — ORGAN',
+      name: 'Leaf (Photosynthetic Organ)',
+      componentName: 'LEAF ORGAN',
+      icon: '🍃',
+      desc: 'Broad, flat organ equipped with upper/lower epidermis, stomata guard cells, internal mesophyll tissue, and branching vascular veins for sugar and water exchange.',
+      concept: 'Plant organs (leaves, stems, roots, flowers) coordinate multiple plant tissues to fulfill specialized roles in energy capture, transport, and support.',
+      zoomR: 14.0,
+      lookY: 0.4,
+      tagPos: new THREE.Vector3(0, 1.8, 0.2)
+    },
+    {
+      level: 3,
+      tag: 'TIER 4 — ORGAN SYSTEM',
+      name: 'Vascular Shoot & Root System',
+      componentName: 'XYLEM & PHLOEM PIPELINE',
+      icon: '🌱',
+      desc: 'Interconnected conduits of xylem vessels (translocating water/minerals from roots) and phloem tubes (distributing sucrose to growing tissues).',
+      concept: 'The shoot system (stems, leaves) and root system operate collectively as continuous organ systems sustaining the plant across seasons.',
+      zoomR: 22.0,
+      lookY: -0.5,
+      tagPos: new THREE.Vector3(0, 3.8, 0)
+    },
+    {
+      level: 4,
+      tag: 'TIER 5 — ORGANISM',
+      name: 'Oak Tree (Multicellular Plant)',
+      componentName: 'QUERCUS ROBUR',
+      icon: '🌳',
+      desc: 'The complete multicellular photosynthetic autotroph organism, balancing transpiration, nutrient absorption, and carbon fixation.',
+      concept: 'A multicellular plant organism integrates roots, shoot conduits, and foliage into a unified living system that produces oxygen for ecosystems.',
+      zoomR: 26.0,
+      lookY: -0.5,
+      tagPos: new THREE.Vector3(0, 5.8, 0)
+    }
+  ];
+
+  function getCurrentTiers(){
+    return activeTrack === 'human' ? HUMAN_TIERS : PLANT_TIERS;
+  }
+
+  /* ================= BUILD HUMAN 3D ANATOMY ================= */
+  function buildHumanAnatomy(scene){
+    const root = new THREE.Group();
+    root.name = "human_root";
+
+    // 1. FULL BODY TRANSLUCENT SILHOUETTE
+    bodySilhouette = new THREE.Group();
+    const skinMat = bioMat(0x2ebfa5, { transparent: true, opacity: 0.16, side: THREE.DoubleSide, shininess: 60 });
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.35 });
+
+    function addBodyPart(geo, pos, rot=null, parent=bodySilhouette){
+      const mesh = new THREE.Mesh(geo, skinMat);
+      mesh.position.set(...pos);
+      if(rot) mesh.rotation.set(...rot);
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeMat);
+      edges.position.set(...pos);
+      if(rot) edges.rotation.set(...rot);
+      parent.add(mesh, edges);
+      return mesh;
+    }
+
+    // Head & Neck
+    addBodyPart(new THREE.SphereGeometry(1.25, 24, 24), [0, 5.1, 0]); // Cranium
+    addBodyPart(new THREE.CylinderGeometry(0.5, 0.6, 1.0, 16), [0, 3.9, 0]); // Neck
+
+    // Torso & Pelvis
+    addBodyPart(new THREE.CylinderGeometry(1.5, 1.25, 3.2, 18), [0, 2.0, 0]); // Chest / Thorax
+    addBodyPart(new THREE.CylinderGeometry(1.2, 1.35, 2.6, 18), [0, -0.6, 0]); // Abdomen & Pelvis
+
+    // Arms
+    addBodyPart(new THREE.CylinderGeometry(0.42, 0.35, 2.8, 14), [-2.1, 1.8, 0], [0, 0, 0.22]); // L Upper Arm
+    addBodyPart(new THREE.CylinderGeometry(0.35, 0.28, 2.6, 14), [-2.8, -0.7, 0], [0, 0, 0.12]); // L Forearm
+    addBodyPart(new THREE.BoxGeometry(0.3, 0.6, 0.4), [-3.1, -2.2, 0]); // L Hand
+
+    addBodyPart(new THREE.CylinderGeometry(0.42, 0.35, 2.8, 14), [2.1, 1.8, 0], [0, 0, -0.22]); // R Upper Arm
+    addBodyPart(new THREE.CylinderGeometry(0.35, 0.28, 2.6, 14), [2.8, -0.7, 0], [0, 0, -0.12]); // R Forearm
+    addBodyPart(new THREE.BoxGeometry(0.3, 0.6, 0.4), [3.1, -2.2, 0]); // R Hand
+
+    // Legs
+    addBodyPart(new THREE.CylinderGeometry(0.62, 0.48, 4.0, 16), [-0.95, -3.8, 0]); // L Thigh
+    addBodyPart(new THREE.CylinderGeometry(0.45, 0.32, 4.2, 16), [-0.95, -7.7, 0]); // L Shin
+    addBodyPart(new THREE.BoxGeometry(0.6, 0.4, 1.1), [-0.95, -9.8, 0.3]); // L Foot
+
+    addBodyPart(new THREE.CylinderGeometry(0.62, 0.48, 4.0, 16), [0.95, -3.8, 0]); // R Thigh
+    addBodyPart(new THREE.CylinderGeometry(0.45, 0.32, 4.2, 16), [0.95, -7.7, 0]); // R Shin
+    addBodyPart(new THREE.BoxGeometry(0.6, 0.4, 1.1), [0.95, -9.8, 0.3]); // R Foot
+
+    root.add(bodySilhouette);
+
+    // 2. INTERNAL SKELETON / RIBCAGE & VERTEBRAE
+    skeletonGroup = new THREE.Group();
+    const boneMat = bioMat(0xd8f5ee, { transparent: true, opacity: 0.3 });
+    // Spine
+    for(let i=0; i<12; i++){
+      const vert = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 10), boneMat);
+      vert.position.set(0, 3.4 - i*0.42, -0.2);
+      skeletonGroup.add(vert);
+    }
+    // Rib Arches
+    for(let i=0; i<6; i++){
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(1.2 - i*0.06, 0.045, 6, 20, Math.PI * 1.4), boneMat);
+      rib.rotation.x = Math.PI / 2;
+      rib.position.set(0, 2.7 - i*0.4, 0);
+      skeletonGroup.add(rib);
+    }
+    root.add(skeletonGroup);
+
+    // 3. FULL CIRCULATORY VASCULAR NETWORK
+    vesselsGroup = new THREE.Group();
+    const artMat = bioMat(0xd93838, { shininess: 80, emissive: 0x551111 }); // Arteries (Crimson)
+    const venMat = bioMat(0x2b6cb0, { shininess: 80, emissive: 0x112244 }); // Veins (Azure)
+
+    function makeTube(points, mat, radius=0.08){
+      const curve = new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
+      return new THREE.Mesh(new THREE.TubeGeometry(curve, 16, radius, 8, false), mat);
+    }
+
+    // Arteries (Red)
+    vesselsGroup.add(makeTube([[0,1.2,0], [0,2.6,0], [-0.3,4.0,0], [-0.4,5.0,0]], artMat, 0.08)); // L Carotid
+    vesselsGroup.add(makeTube([[0,1.2,0], [0,2.6,0], [0.3,4.0,0], [0.4,5.0,0]], artMat, 0.08)); // R Carotid
+    vesselsGroup.add(makeTube([[0,1.6,0], [-1.4,2.0,0], [-2.2,0.8,0], [-2.8,-1.2,0], [-3.1,-2.0,0]], artMat, 0.07)); // L Arm
+    vesselsGroup.add(makeTube([[0,1.6,0], [1.4,2.0,0], [2.2,0.8,0], [2.8,-1.2,0], [3.1,-2.0,0]], artMat, 0.07)); // R Arm
+    vesselsGroup.add(makeTube([[0,1.2,0], [0,-1.0,0], [-0.8,-3.0,0], [-0.9,-6.0,0], [-0.9,-9.4,0]], artMat, 0.09)); // L Leg
+    vesselsGroup.add(makeTube([[0,1.2,0], [0,-1.0,0], [0.8,-3.0,0], [0.9,-6.0,0], [0.9,-9.4,0]], artMat, 0.09)); // R Leg
+
+    // Veins (Blue)
+    vesselsGroup.add(makeTube([[0.1,1.0,0.1], [0.2,2.8,0.1], [0.5,4.8,0.1]], venMat, 0.07)); // R Jugular
+    vesselsGroup.add(makeTube([[-0.1,1.0,0.1], [-0.2,2.8,0.1], [-0.5,4.8,0.1]], venMat, 0.07)); // L Jugular
+    vesselsGroup.add(makeTube([[0.2,1.3,0.1], [1.6,1.8,0.1], [2.4,0.6,0.1], [2.9,-1.4,0.1]], venMat, 0.065)); // R Arm vein
+    vesselsGroup.add(makeTube([[-0.2,1.3,0.1], [-1.6,1.8,0.1], [-2.4,0.6,0.1], [-2.9,-1.4,0.1]], venMat, 0.065)); // L Arm vein
+    vesselsGroup.add(makeTube([[0.1,0.8,0.1], [0.1,-1.2,0.1], [0.7,-3.2,0.1], [0.8,-6.2,0.1], [0.8,-9.2,0.1]], venMat, 0.08)); // R Leg vein
+    vesselsGroup.add(makeTube([[-0.1,0.8,0.1], [-0.1,-1.2,0.1], [-0.7,-3.2,0.1], [-0.8,-6.2,0.1], [-0.8,-9.2,0.1]], venMat, 0.08)); // L Leg vein
+
+    root.add(vesselsGroup);
+
+    // Flowing Blood Corpuscle Particles
+    bloodParticles = new THREE.Group();
+    for(let i=0; i<36; i++){
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), new THREE.MeshBasicMaterial({ color: i%2===0?0xff3333:0x3388ff }));
+      p.userData = { offset: i/36, speed: 0.008 };
+      bloodParticles.add(p);
+    }
+    root.add(bloodParticles);
+
+    // 4. HEART ORGAN (Anatomical 3D Heart with Aorta & Ventricles)
+    heartGroup = new THREE.Group();
+    heartGroup.position.set(-0.15, 1.4, 0.25);
+
+    // Ventricles & Muscle Base
+    heartMesh = new THREE.Mesh(new THREE.SphereGeometry(0.72, 24, 24), bioMat(0xb8283a, { shininess: 80 }));
+    heartMesh.scale.set(0.9, 1.25, 0.85);
+    heartMesh.rotation.z = -0.22;
+    heartGroup.add(heartMesh);
+
+    // Aortic Arch & Pulmonary Trunk
+    heartAorta = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.14, 10, 20, Math.PI * 1.1), bioMat(0xde3b4b, { emissive: 0x440000 }));
+    heartAorta.position.set(0.05, 0.65, -0.05);
+    heartAorta.rotation.z = 0.35;
+    heartGroup.add(heartAorta);
+
+    // Left/Right Atrium Tops
+    const atriumR = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), bioMat(0x942232));
+    atriumR.position.set(0.35, 0.45, 0.1);
+    const atriumL = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), bioMat(0x942232));
+    atriumL.position.set(-0.4, 0.4, -0.05);
+    heartGroup.add(atriumR, atriumL);
+
+    // Pulsing aura ring
+    const heartAura = new THREE.Mesh(new THREE.RingGeometry(0.85, 0.95, 32), new THREE.MeshBasicMaterial({ color: 0xff3b50, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
+    heartAura.name = "heart_aura";
+    heartGroup.add(heartAura);
+
+    root.add(heartGroup);
+
+    // 5. CARDIAC MUSCLE TISSUE LAYER (Interwoven fascicle bundles)
+    tissueGroup = new THREE.Group();
+    tissueGroup.position.set(-0.15, 1.4, 0.4);
+    for(let r=0; r<4; r++){
+      for(let c=0; c<3; c++){
+        const fiber = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.5, 10), bioMat(0xe65151, { emissive: 0x330000 }));
+        fiber.rotation.z = Math.PI/2 + (Math.random()-0.5)*0.3;
+        fiber.position.set((c-1)*0.26, (r-1.5)*0.22, (Math.random()-0.5)*0.1);
+        tissueGroup.add(fiber);
+      }
+    }
+    root.add(tissueGroup);
+
+    // 6. MAGNIFIED CARDIOMYOCYTE CELL (Floating Holographic Reticle Callout)
+    cellGroup = new THREE.Group();
+    cellGroup.position.set(2.4, 1.8, 1.0); // Floats to the right of the chest
+
+    // Holographic Reticle Frame
+    const frameRing = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.04, 12, 48), new THREE.MeshBasicMaterial({ color: 0x2ebfa5, transparent: true, opacity: 0.6 }));
+    const reticleDisk = new THREE.Mesh(new THREE.CircleGeometry(1.58, 36), new THREE.MeshBasicMaterial({ color: 0x051a16, transparent: true, opacity: 0.75 }));
+    cellGroup.add(frameRing, reticleDisk);
+
+    // Branched Striated Cell Body
+    const myoBody = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.35, 2.2, 20), bioMat(0xd84545));
+    myoBody.rotation.z = Math.PI/2;
+    // Striation Rings (Sarcomeres)
+    for(let s=-4; s<=4; s++){
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.39, 0.025, 8, 20), bioMat(0xff8888, { emissive: 0x441111 }));
+      band.position.x = s * 0.22;
+      band.rotation.y = Math.PI/2;
+      cellGroup.add(band);
+    }
+    // Nucleus
+    const myoNuc = new THREE.Mesh(new THREE.SphereGeometry(0.28, 18, 18), bioMat(0x8c68cd, { emissive: 0x2a164d }));
+    myoNuc.scale.set(1.4, 0.8, 0.8);
+    myoNuc.position.set(0, 0, 0.1);
+
+    // Mitochondria powerhouses
+    [-0.5, 0.5].forEach(x=>{
+      const mito = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), bioMat(0xe6a13b));
+      mito.scale.set(1.6, 0.7, 0.7);
+      mito.position.set(x, 0.22, 0.1);
+      cellGroup.add(mito);
+    });
+
+    cellGroup.add(myoBody, myoNuc);
+    root.add(cellGroup);
+
+    // Callout Leader Laser connecting Heart -> Cell Reticle
+    const beamGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.15, 1.4, 0.3), new THREE.Vector3(1.2, 1.8, 1.0)]);
+    calloutBeam = new THREE.Line(beamGeo, new THREE.LineBasicMaterial({ color: 0x2ebfa5, linewidth: 2, transparent: true, opacity: 0.8 }));
+    root.add(calloutBeam);
+
+    scene.add(root);
+  }
+
+  /* ================= BUILD PLANT 3D ANATOMY ================= */
+  function buildPlantAnatomy(scene){
+    plantGroup = new THREE.Group();
+    plantGroup.name = "plant_root";
+    plantGroup.visible = false;
+
+    // 1. OAK TREE SILHOUETTE (Multicellular Plant)
+    const treeMat = bioMat(0x1fa37c, { transparent: true, opacity: 0.18, side: THREE.DoubleSide });
+    const trunkMat = bioMat(0x8c6d46, { transparent: true, opacity: 0.25 });
+
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 8.0, 16), trunkMat);
+    trunk.position.set(0, -2.0, 0);
+
+    const canopy1 = new THREE.Mesh(new THREE.SphereGeometry(3.6, 24, 24), treeMat);
+    canopy1.position.set(0, 3.5, 0); canopy1.scale.set(1.2, 0.9, 1.1);
+
+    const canopy2 = new THREE.Mesh(new THREE.SphereGeometry(2.4, 20, 20), treeMat);
+    canopy2.position.set(-1.8, 2.8, 0.5);
+
+    const canopy3 = new THREE.Mesh(new THREE.SphereGeometry(2.4, 20, 20), treeMat);
+    canopy3.position.set(1.8, 3.0, -0.4);
+
+    plantGroup.add(trunk, canopy1, canopy2, canopy3);
+
+    // 2. VASCULAR SYSTEM (Xylem & Phloem Conduits)
+    plantVesselsGroup = new THREE.Group();
+    const xylemMat = bioMat(0x4ba3e3, { emissive: 0x113355 });
+    const phloemMat = bioMat(0x2ebfa5, { emissive: 0x053322 });
+
+    for(let i=0; i<6; i++){
+      const ang = (i/6)*Math.PI*2;
+      const xPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 9.0, 8), xylemMat);
+      xPipe.position.set(Math.cos(ang)*0.5, -1.8, Math.sin(ang)*0.5);
+      const pPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 9.0, 8), phloemMat);
+      pPipe.position.set(Math.cos(ang+0.3)*0.65, -1.8, Math.sin(ang+0.3)*0.65);
+      plantVesselsGroup.add(xPipe, pPipe);
+    }
+    plantGroup.add(plantVesselsGroup);
+
+    // 3. LEAF ORGAN (Enlarged anatomical leaf blade)
+    plantLeafGroup = new THREE.Group();
+    plantLeafGroup.position.set(0, 1.6, 0.8);
+    const leafShape = new THREE.Shape();
+    leafShape.moveTo(0, -1.5);
+    leafShape.quadraticCurveTo(1.4, 0, 0, 1.8);
+    leafShape.quadraticCurveTo(-1.4, 0, 0, -1.5);
+    const leafGeo = new THREE.ShapeGeometry(leafShape);
+    const leafMesh = new THREE.Mesh(leafGeo, bioMat(0x25964d, { side: THREE.DoubleSide }));
+    plantLeafGroup.add(leafMesh);
+    plantGroup.add(plantLeafGroup);
+
+    // 4. MESOPHYLL TISSUE LAYER
+    plantTissueGroup = new THREE.Group();
+    plantTissueGroup.position.set(0, 1.6, 1.0);
+    for(let i=0; i<8; i++){
+      const cellCol = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.6, 8), bioMat(0x35b364));
+      cellCol.position.set(-0.7 + (i%4)*0.45, (Math.floor(i/4))*0.5 - 0.2, 0.05);
+      plantTissueGroup.add(cellCol);
+    }
+    plantGroup.add(plantTissueGroup);
+
+    // 5. MAGNIFIED PALISADE CELL
+    plantCellGroup = new THREE.Group();
+    plantCellGroup.position.set(2.4, 1.8, 1.0);
+    const pReticle = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.04, 12, 48), new THREE.MeshBasicMaterial({ color: 0x1fa37c, transparent: true, opacity: 0.6 }));
+    const pDisk = new THREE.Mesh(new THREE.CircleGeometry(1.58, 36), new THREE.MeshBasicMaterial({ color: 0x051a16, transparent: true, opacity: 0.75 }));
+    plantCellGroup.add(pReticle, pDisk);
+
+    const palisadeMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 2.2, 16), bioMat(0x8ee0a3, { transparent: true, opacity: 0.5 }));
+    plantCellGroup.add(palisadeMesh);
+
+    for(let c=0; c<10; c++){
+      const chl = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), bioMat(0x1fa37c));
+      chl.scale.set(1, 0.6, 0.8);
+      chl.position.set(Math.cos(c)*0.25, -0.8 + (c/10)*1.6, Math.sin(c)*0.25);
+      plantCellGroup.add(chl);
+    }
+    plantGroup.add(plantCellGroup);
+
+    scene.add(plantGroup);
+  }
+
+  /* ================= APPLY SPECIFIC LEVEL ================= */
+  function applyLevel(lv){
+    activeLevel = lv;
+    const tiers = getCurrentTiers();
+    const cur = tiers[lv];
+    unlockedLevels.add(lv);
+
+    // Camera target settings
+    camTargetRadius = cur.zoomR;
+    camTargetLook.set(0, cur.lookY, 0);
+
+    if(activeTrack === 'human'){
+      // Visibility of Human anatomy layers based on selected tier
+      // 0: Cell -> Cell visible + Heart visible, Body faint
+      // 1: Tissue -> Tissue visible + Heart visible
+      // 2: Organ -> Heart brightly visible + Skeleton
+      // 3: System -> Vessels + Blood flow + Skeleton
+      // 4: Organism -> Full body + All systems active
+      cellGroup.visible = lv === 0;
+      calloutBeam.visible = lv === 0;
+      tissueGroup.visible = lv === 1;
+      heartGroup.visible = lv >= 0;
+      vesselsGroup.visible = lv >= 3;
+      bloodParticles.visible = lv >= 3;
+      bodySilhouette.visible = lv >= 2;
+      skeletonGroup.visible = lv >= 2;
+
+      // Highlight active component
+      if(lv === 0){
+        cellGroup.scale.set(1.1, 1.1, 1.1);
+      } else {
+        cellGroup.scale.set(1.0, 1.0, 1.0);
+      }
+    } else {
+      // Plant Track visibility
+      plantCellGroup.visible = lv === 0;
+      plantTissueGroup.visible = lv === 1;
+      plantLeafGroup.visible = lv >= 2;
+      plantVesselsGroup.visible = lv >= 3;
+      plantGroup.children[0].visible = lv >= 4; // Trunk
+    }
+
+    // Update Telemetry & UI text
+    document.getElementById('hud-tier-val').textContent = cur.tag;
+    document.getElementById('hud-component-val').textContent = cur.componentName;
+    document.getElementById('hier-tier-tag').textContent = cur.tag;
+    document.getElementById('hier-detail-title').textContent = cur.name;
+    document.getElementById('hier-detail-desc').textContent = cur.desc;
+    document.getElementById('hier-concept-desc').innerHTML = `<strong>${cur.tag}:</strong> ${cur.concept}`;
+    document.getElementById('hier-progress-text').textContent = `Tiers Discovered: ${unlockedLevels.size} / 5`;
+
+    // Speak tier name and description
+    VoiceEngine.speak(`${cur.tag}: ${cur.name}. ${cur.desc}`, 'elena');
+
+    // Update top rail active state
+    document.querySelectorAll('.hier-rail-step').forEach((el, i)=>{
+      el.classList.toggle('active', i === lv);
+    });
+
+    // Update bottom shelf buttons
+    document.querySelectorAll('.hier-tile-btn').forEach((btn)=>{
+      const btnLv = parseInt(btn.dataset.level);
+      btn.classList.toggle('active', btnLv === lv);
+      btn.classList.toggle('assembled', unlockedLevels.has(btnLv));
+    });
+
+    if(unlockedLevels.size >= 5){
+      document.getElementById('btn-complete-hier-mission').style.display = 'flex';
+    }
+  }
+
+  function renderPool(){
+    const poolHost = document.getElementById('hier-pool-row');
+    const tiers = getCurrentTiers();
+    poolHost.innerHTML = tiers.map(t=>`
+      <button class="hier-tile-btn ${activeLevel===t.level?'active':''} ${unlockedLevels.has(t.level)?'assembled':''}" data-level="${t.level}">
+        <span class="tier-badge">TIER ${t.level+1}</span>
+        <span style="font-size:15px;">${t.icon}</span>
+        <span>${t.name}</span>
+      </button>
+    `).join('');
+
+    poolHost.querySelectorAll('.hier-tile-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const lv = parseInt(btn.dataset.level);
+        AudioEngine.playSuccess();
+        VN.react('happy');
+        applyLevel(lv);
+      });
+    });
+
+    document.querySelectorAll('.hier-rail-step').forEach(step=>{
+      step.onclick = ()=>{
+        const lv = parseInt(step.dataset.level);
+        AudioEngine.playClick();
+        applyLevel(lv);
+      };
+    });
+  }
+
+  function setTrack(track){
+    activeTrack = track;
+    const isHuman = track === 'human';
+    document.getElementById('btn-track-animal').classList.toggle('active', isHuman);
+    document.getElementById('btn-track-plant').classList.toggle('active', !isHuman);
+    document.getElementById('hud-specimen-val').textContent = isHuman ? 'HOMO SAPIENS (HUMAN)' : 'QUERCUS ROBUR (OAK TREE)';
+
+    if(bodySilhouette && bodySilhouette.parent) bodySilhouette.parent.visible = isHuman;
+    if(plantGroup) plantGroup.visible = !isHuman;
+
+    VoiceEngine.speak(isHuman ? "Displaying 3D Human Anatomy hierarchy track." : "Displaying 3D Plant Anatomy hierarchy track.", 'zoe');
+
+    unlockedLevels = new Set([0]);
+    renderPool();
+    applyLevel(0);
+  }
+
+  function updateFloatingLabels(){
+    const host = document.getElementById('hier-tag-host');
+    host.innerHTML = '';
+    const tiers = getCurrentTiers();
+    const cur = tiers[activeLevel];
+    if(!cur || !cur.tagPos) return;
+
+    const screenPos = three.projectToScreen(cur.tagPos);
+    if(screenPos.z > 1) return;
+
+    const tag = document.createElement('div');
+    tag.className = 'hier-3d-tag';
+    tag.style.left = screenPos.x + 'px';
+    tag.style.top = screenPos.y + 'px';
+    tag.innerHTML = `<span>${cur.icon} ${cur.tag}: ${cur.name}</span>`;
+    tag.addEventListener('click', ()=>{
+      AudioEngine.playClick();
+      applyLevel(activeLevel);
+    });
+    host.appendChild(tag);
+  }
+
+  function setupScene(){
+    const canvas = document.getElementById('hier-viewport-canvas');
+    three = setupThreeRig(canvas);
+    three.orbit.radius = 12;
+
+    buildHumanAnatomy(three.scene);
+    buildPlantAnatomy(three.scene);
+
+    renderPool();
+    applyLevel(0);
+
+    // Top buttons handlers
+    document.getElementById('btn-track-animal').addEventListener('click', ()=>{ setTrack('human'); AudioEngine.playClick(); });
+    document.getElementById('btn-track-plant').addEventListener('click', ()=>{ setTrack('plant'); AudioEngine.playClick(); });
+
+    document.getElementById('btn-view-macro').addEventListener('click', ()=>{ camTargetRadius = 26; camTargetLook.set(0,-0.5,0); AudioEngine.playClick(); });
+    document.getElementById('btn-view-meso').addEventListener('click', ()=>{ camTargetRadius = 13; camTargetLook.set(0,0.5,0); AudioEngine.playClick(); });
+    document.getElementById('btn-view-micro').addEventListener('click', ()=>{ camTargetRadius = 6.5; camTargetLook.set(1.2,0.6,0); AudioEngine.playClick(); });
+
+    // Layer toggles
+    let skeletonVisible = true;
+    document.getElementById('btn-toggle-skeleton').addEventListener('click', ()=>{
+      skeletonVisible = !skeletonVisible;
+      if(skeletonGroup) skeletonGroup.visible = skeletonVisible;
+      document.getElementById('label-skeleton-state').textContent = skeletonVisible ? 'ON' : 'OFF';
+      AudioEngine.playClick();
+    });
+
+    let vesselsActive = true;
+    document.getElementById('btn-toggle-vessels').addEventListener('click', ()=>{
+      vesselsActive = !vesselsActive;
+      if(bloodParticles) bloodParticles.visible = vesselsActive;
+      document.getElementById('label-vessels-state').textContent = vesselsActive ? 'ACTIVE' : 'PAUSED';
+      AudioEngine.playClick();
+    });
+
+    // Render loop
+    let t = 0;
+    function loop(){
+      requestAnimationFrame(loop);
+      if(!document.getElementById('act-screen-hierarchy').classList.contains('active')) return;
+      three.resize();
+
+      // Smooth Camera Lerping
+      three.orbit.radius += (camTargetRadius - three.orbit.radius) * 0.08;
+      three.orbit.target.lerp(camTargetLook, 0.08);
+      three.updateCamera();
+
+      t += 0.045;
+
+      // Realistic 2-stage Heartbeat Animation (Systole / Diastole)
+      if(heartMesh){
+        const beatCycle = (Math.sin(t * 3.5) + Math.sin(t * 7.0)) * 0.5;
+        const pulse = 1.0 + Math.max(0, beatCycle) * 0.12;
+        heartMesh.scale.set(0.9 * pulse, 1.25 * pulse, 0.85 * pulse);
+
+        const aura = heartGroup.getObjectByName('heart_aura');
+        if(aura){
+          aura.scale.set(pulse * 1.1, pulse * 1.1, 1);
+        }
+      }
+
+      // Striated muscle twitching
+      if(tissueGroup && tissueGroup.visible){
+        const tw = 1 + 0.05 * Math.sin(t * 3.5);
+        tissueGroup.scale.set(tw, tw, 1);
+      }
+
+      // Cardiomyocyte contraction wave
+      if(cellGroup && cellGroup.visible){
+        const myoPulse = 1 + 0.04 * Math.sin(t * 3.5);
+        cellGroup.children[2].scale.set(myoPulse, 1, 1); // Muscle body
+      }
+
+      // Circulate blood particles through vascular pathways
+      if(bloodParticles && bloodParticles.visible){
+        bloodParticles.children.forEach((p, idx)=>{
+          p.userData.offset = (p.userData.offset + p.userData.speed) % 1;
+          const posProgress = p.userData.offset;
+          // Flow along torso, legs, and arms
+          const y = 3.5 - posProgress * 12.0;
+          const legBranch = idx % 2 === 0 ? 1 : -1;
+          p.position.set(legBranch * Math.sin(posProgress * Math.PI) * 0.8, y, 0.1);
+        });
+      }
+
+      three.renderer.render(three.scene, three.camera);
+      updateFloatingLabels();
+    }
+    loop();
+  }
+
+  document.getElementById('btn-complete-hier-mission').addEventListener('click', ()=>{
+    AudioEngine.playSuccess();
+    VN.react('happy');
+    VoiceEngine.speak("Hierarchy assembly complete! You have connected cells, tissues, organs, systems, and the living organism.", 'elena');
+    document.getElementById('act-screen-hierarchy').classList.remove('active');
+    VN.resume('post_hierarchy');
+  });
+
+  return {
+    init(){
+      document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('act-screen-hierarchy').classList.add('active');
+      if(!three) setupScene();
+      else applyLevel(activeLevel);
+    }
+  };
+})();
+
+
+/* =========================================================================
+   10. ACTIVITY 5: CERTIFICATE GENERATOR (HIGH-RES PNG DOWNLOAD)
+   ========================================================================= */
+const ActivityCertificate = (function(){
+  function generateAndDownloadPNG(){
+    const nameInput = document.getElementById('cert-student-input');
+    const studentName = (nameInput && nameInput.value ? nameInput.value.trim() : 'CADET RESEARCHER').toUpperCase();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1600;
+    canvas.height = 1100;
+    const ctx = canvas.getContext('2d');
+
+    // 1. Background Parchment with soft Radial Bio-Gradient
+    const bgGrad = ctx.createRadialGradient(800, 550, 100, 800, 550, 950);
+    bgGrad.addColorStop(0, '#fbfdfc');
+    bgGrad.addColorStop(0.65, '#f0f8f4');
+    bgGrad.addColorStop(1, '#ddede5');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1600, 1100);
+
+    // Subtle security background mesh
+    ctx.strokeStyle = 'rgba(31, 122, 108, 0.035)';
+    ctx.lineWidth = 1;
+    for(let i=0; i<=1600; i+=25){
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(1600 - i, 1100);
+      ctx.stroke();
+    }
+
+    // 2. Borders & Corner Filigree
+    // Outer Emerald Border
+    ctx.strokeStyle = '#0e4a3e';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(40, 40, 1520, 1020);
+
+    // Gold Secondary Border
+    ctx.strokeStyle = '#c99637';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(54, 54, 1492, 992);
+
+    // Inner Emerald Pinstripe
+    ctx.strokeStyle = '#1f7a6c';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(62, 62, 1476, 976);
+
+    // Corner Ornaments
+    function drawCorner(x, y, flipX, flipY){
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+      ctx.strokeStyle = '#c99637';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 45);
+      ctx.lineTo(0, 0);
+      ctx.lineTo(45, 0);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0e4a3e';
+      ctx.beginPath();
+      ctx.arc(16, 16, 7, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+    drawCorner(72, 72, false, false);
+    drawCorner(1528, 72, true, false);
+    drawCorner(72, 1028, false, true);
+    drawCorner(1528, 1028, true, true);
+
+    // 3. Top Header
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#0e4a3e';
+    ctx.font = 'bold 20px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('INTERNATIONAL BACCALAUREATE (IB) SCIENCE · UNIT: CELLS', 800, 120);
+
+    // Gold Medal Seal
+    ctx.save();
+    ctx.translate(800, 195);
+    ctx.fillStyle = '#c99637';
+    ctx.beginPath();
+    ctx.arc(0, 0, 42, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#0e4a3e';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 35, 0, Math.PI*2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 30px sans-serif';
+    ctx.fillText('🧬', 0, 10);
+    ctx.restore();
+
+    // 4. Main Titles
+    ctx.fillStyle = '#0e4a3e';
+    ctx.font = 'bold 42px "Times New Roman", Georgia, serif';
+    ctx.fillText('APEX BIO-STATION LABORATORY', 800, 285);
+
+    ctx.fillStyle = '#c99637';
+    ctx.font = '600 23px "Times New Roman", Georgia, serif';
+    ctx.fillText('CERTIFICATE OF SCIENTIFIC DISTINCTION', 800, 325);
+
+    // Gold Divider
+    ctx.strokeStyle = '#c99637';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(500, 345);
+    ctx.lineTo(1100, 345);
+    ctx.stroke();
+
+    // 5. Recipient Notice
+    ctx.fillStyle = '#2f4f48';
+    ctx.font = 'italic 20px Georgia, serif';
+    ctx.fillText('This official accreditation is proudly presented to Research Cadet', 800, 395);
+
+    // Student Name (Bold Burned Amber/Gold)
+    ctx.fillStyle = '#c2410c';
+    ctx.font = 'bold 46px "Times New Roman", Georgia, serif';
+    ctx.fillText(studentName, 800, 455);
+
+    // Underline
+    ctx.strokeStyle = '#0e4a3e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(420, 475);
+    ctx.lineTo(1180, 475);
+    ctx.stroke();
+
+    ctx.fillStyle = '#2f4f48';
+    ctx.font = '19px Georgia, serif';
+    ctx.fillText('for exceptional mastery of cellular biology and structural adaptations across all 4 research modules:', 800, 520);
+
+    // 6. 4 Module Achievement Badges
+    const modules = [
+      { num: 'MODULE 1', title: '3D Cell Dissection', desc: 'Identified all plant & animal organelles' },
+      { num: 'MODULE 2', title: 'Cellular Factory Tycoon', desc: 'Resolved homeostasis stress events' },
+      { num: 'MODULE 3', title: 'Specialised Cells RPG', desc: 'Matched structure to vital function' },
+      { num: 'MODULE 4', title: '3D Body Hierarchy', desc: 'Assembled Cell → Tissue → Organ → System' }
+    ];
+
+    modules.forEach((mod, idx)=>{
+      const mx = 240 + (idx % 2) * 580;
+      const my = 560 + Math.floor(idx / 2) * 110;
+      
+      // Card Box
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(mx, my, 540, 90);
+      ctx.strokeStyle = '#1f7a6c';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(mx, my, 540, 90);
+
+      // Green Check Badge
+      ctx.fillStyle = '#1f7a6c';
+      ctx.beginPath();
+      ctx.arc(mx + 40, my + 45, 22, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText('✓', mx + 40, my + 52);
+
+      // Text inside card
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#c99637';
+      ctx.font = 'bold 13px "Segoe UI", Arial, sans-serif';
+      ctx.fillText(mod.num, mx + 75, my + 34);
+
+      ctx.fillStyle = '#0e4a3e';
+      ctx.font = 'bold 20px "Times New Roman", Georgia, serif';
+      ctx.fillText(mod.title, mx + 75, my + 58);
+
+      ctx.fillStyle = '#4a6b63';
+      ctx.font = '14px "Segoe UI", Arial, sans-serif';
+      ctx.fillText(mod.desc, mx + 75, my + 78);
+    });
+
+    // 7. Signatures & Verified Date Stamp
+    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const certId = 'IB-CYTO-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+    // Signature 1: Dr. Elena Vance
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#0e4a3e';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(250, 940);
+    ctx.lineTo(550, 940);
+    ctx.stroke();
+
+    ctx.fillStyle = '#0e4a3e';
+    ctx.font = 'italic 28px "Brush Script MT", "Segoe Script", cursive';
+    ctx.fillText('Dr. Elena Vance', 400, 930);
+
+    ctx.fillStyle = '#4a6b63';
+    ctx.font = 'bold 13.5px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('DR. ELENA VANCE · LEAD BIOLOGIST', 400, 962);
+
+    // Center Seal / Verified ID
+    ctx.fillStyle = '#c99637';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(`VERIFIED ID: ${certId}`, 800, 940);
+    ctx.fillStyle = '#2f4f48';
+    ctx.font = '14px sans-serif';
+    ctx.fillText(`ISSUED: ${dateStr}`, 800, 962);
+
+    // Signature 2: Zoe Chen & Kai Cruz
+    ctx.beginPath();
+    ctx.moveTo(1050, 940);
+    ctx.lineTo(1350, 940);
+    ctx.stroke();
+
+    ctx.fillStyle = '#0e4a3e';
+    ctx.font = 'italic 28px "Brush Script MT", "Segoe Script", cursive';
+    ctx.fillText('Zoe Chen & Kai Cruz', 1200, 930);
+
+    ctx.fillStyle = '#4a6b63';
+    ctx.font = 'bold 13.5px "Segoe UI", Arial, sans-serif';
+    ctx.fillText('APEX RESEARCH DIRECTORS', 1200, 962);
+
+    // 8. Auto Trigger File Download
+    const cleanFilename = `IB_Science_Cells_Certificate_${studentName.replace(/[^A-Z0-9]/gi, '_')}.png`;
+    const link = document.createElement('a');
+    link.download = cleanFilename;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    AudioEngine.playSuccess();
+    VN.react('happy');
+    VoiceEngine.speak("Certificate generated and downloaded successfully!", 'elena');
+  }
+
+  return {
+    init(){
+      document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('act-screen-certificate').classList.add('active');
+      AudioEngine.playSuccess();
+      VoiceEngine.speak("Congratulations Research Cadet! You have mastered all foundational IB Science modules. Customize your name and download your official distinction certificate.", 'elena');
+
+      const dlBtn = document.getElementById('btn-download-cert-png');
+      if(dlBtn){
+        dlBtn.onclick = generateAndDownloadPNG;
+      }
+    }
+  };
+})();
+
+document.getElementById('btn-restart-game').addEventListener('click', ()=>{ window.location.reload(); });
+
+window.addEventListener('DOMContentLoaded', ()=>{ VN.start(); });
+</script>
+</body>
+</html>

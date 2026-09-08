@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Cell Explorer — IB Unit: Cells</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{
+    --bg: #f4faf6;
+    --ink: #12332e;
+    --ink-soft: #3f5d57;
+    --teal: #1f7a6c;
+    --teal-deep: #0f4a40;
+    --coral: #dd5a2e;
+    --violet: #6a4e9b;
+    --paper: #ffffff;
+    --line: #d6e6de;
+    --amber: #bd8420;
+    --peach: #fbeee3;
+    --mint: #e7f4ec;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:'Work Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;}
+  h1,h2,h3,.display{font-family:'Fraunces',serif;}
+  #app{position:relative;width:100vw;height:100vh;}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;}
+  .screen.active{display:flex;}
+
+  /* ---------- HOME ---------- */
+  #home{overflow-y:auto;}
+  .home-wrap{max-width:980px;margin:0 auto;padding:38px 24px 60px;width:100%;}
+  .home-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:6px;}
+  .kicker{font-size:12.5px;letter-spacing:.04em;color:var(--teal-deep);font-weight:600;margin:0 0 6px;}
+  .home-head h1{font-size:38px;line-height:1.05;margin:0;font-weight:600;color:var(--ink);}
+  .home-head p{margin:8px 0 0;color:var(--ink-soft);font-size:15px;max-width:44ch;}
+  .unit-tag{font-family:'Work Sans',sans-serif;font-size:12px;font-weight:600;color:var(--teal-deep);
+    background:var(--mint);border:1px solid var(--teal);border-radius:3px;padding:5px 10px;white-space:nowrap;}
+
+  #hero-stage{position:relative;height:230px;margin:22px 0 30px;border-radius:6px;overflow:hidden;
+    background:linear-gradient(180deg,#eef8f1,#e2f1e7);border:1px solid var(--line);}
+  #hero-canvas{width:100%;height:100%;display:block;cursor:grab;}
+  .hero-caption{position:absolute;left:16px;bottom:12px;font-size:13px;color:var(--ink-soft);
+    background:rgba(255,255,255,.78);padding:4px 9px;border-radius:3px;}
+  .hero-caption b{color:var(--teal-deep);}
+
+  .tray-label{font-size:13px;color:var(--ink-soft);margin:0 0 12px;}
+  .tray{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:640px){.tray{grid-template-columns:1fr;}}
+  .slide{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:0;cursor:pointer;
+    text-align:left;position:relative;overflow:hidden;transition:border-color .15s ease, transform .15s ease;}
+  .slide:hover{border-color:var(--teal);transform:translateY(-2px);}
+  .slide:focus-visible{outline:2px solid var(--coral);outline-offset:2px;}
+  .slide-tab{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;color:#fff;
+    padding:4px 10px;border-radius:0 0 4px 0;}
+  .slide-body{padding:16px 18px 18px;}
+  .slide-body h2{font-size:20px;margin:2px 0 6px;font-weight:600;}
+  .slide-body p{font-size:13.5px;color:var(--ink-soft);margin:0 0 10px;line-height:1.45;}
+  .slide-meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--teal-deep);}
+  .lens{width:34px;height:34px;border-radius:50%;flex-shrink:0;margin-right:10px;}
+
+  /* ---------- SHARED ACTIVITY CHROME ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;
+    border-bottom:1px solid var(--line);background:var(--paper);flex-shrink:0;z-index:5;}
+  .back-btn{font-family:'Work Sans',sans-serif;font-size:13.5px;font-weight:600;color:var(--teal-deep);
+    background:none;border:1px solid var(--line);border-radius:4px;padding:7px 13px;cursor:pointer;}
+  .back-btn:hover{border-color:var(--teal);}
+  .topbar h2{font-size:17px;margin:0;font-weight:600;}
+  .progress-chip{font-size:12.5px;font-weight:600;color:var(--teal-deep);background:var(--mint);
+    border:1px solid var(--teal);border-radius:20px;padding:5px 12px;}
+
+  .stage-wrap{position:relative;flex:1;min-height:0;display:flex;}
+  .canvas-col{position:relative;flex:1;min-width:0;}
+  canvas.scene-canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab;}
+  canvas.scene-canvas:active{cursor:grabbing;}
+
+  .hint{position:absolute;left:16px;top:14px;font-size:12px;color:var(--ink-soft);
+    background:rgba(255,255,255,.85);padding:5px 10px;border-radius:3px;border:1px solid var(--line);}
+  .zoom-controls{position:absolute;right:16px;top:14px;display:flex;flex-direction:column;gap:6px;}
+  .zoom-btn{width:30px;height:30px;border-radius:4px;border:1px solid var(--line);background:#fff;
+    font-size:16px;color:var(--teal-deep);cursor:pointer;line-height:1;}
+  .zoom-btn:hover{border-color:var(--teal);}
+
+  .tag{position:absolute;transform:translate(-50%,-100%);pointer-events:none;font-size:11.5px;
+    font-weight:600;color:var(--ink);background:rgba(255,255,255,.92);border:1px solid var(--line);
+    padding:3px 7px;border-radius:3px;white-space:nowrap;transition:opacity .1s;}
+  .tag.faint{opacity:.55;}
+  .tag.selected{border-color:var(--coral);color:var(--coral);}
+
+  .side-panel{width:300px;flex-shrink:0;border-left:1px solid var(--line);background:var(--paper);
+    padding:18px;overflow-y:auto;}
+  @media(max-width:820px){.side-panel{width:230px;padding:14px;}}
+  .info-empty{color:var(--ink-soft);font-size:13.5px;line-height:1.55;}
+  .info-card h3{font-size:18px;margin:0 0 4px;color:var(--teal-deep);}
+  .info-card .role{font-size:11.5px;font-weight:600;color:var(--coral);letter-spacing:.02em;margin:0 0 10px;}
+  .info-card p{font-size:13.5px;line-height:1.55;color:var(--ink);margin:0 0 10px;}
+  .checklist{margin-top:20px;border-top:1px solid var(--line);padding-top:14px;}
+  .checklist h4{font-size:12.5px;letter-spacing:.02em;color:var(--ink-soft);margin:0 0 8px;font-weight:600;}
+  .check-item{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;color:var(--ink-soft);}
+  .check-item.done{color:var(--teal-deep);font-weight:600;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0;}
+  .check-item.done .dot{background:var(--teal);}
+  .badge{margin-top:16px;padding:10px 12px;border-radius:4px;background:var(--mint);border:1px solid var(--teal);
+    font-size:13px;color:var(--teal-deep);font-weight:600;display:none;}
+  .badge.show{display:block;}
+
+  /* ---------- SPECIALISED CELLS ---------- */
+  .carousel-nav{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:10px;}
+  .carousel-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#fff;
+    font-size:16px;color:var(--teal-deep);cursor:pointer;}
+  .carousel-btn:hover{border-color:var(--teal);}
+  .specimen-name{position:absolute;top:14px;left:50%;transform:translateX(-50%);text-align:center;}
+  .specimen-name .sp-tab{font-size:11px;font-weight:600;color:#fff;background:var(--violet);
+    padding:3px 10px;border-radius:3px;letter-spacing:.02em;}
+  .specimen-name h3{margin:6px 0 0;font-size:19px;}
+
+  .quiz-box{margin-top:18px;border-top:1px solid var(--line);padding-top:14px;}
+  .quiz-box h4{font-size:12.5px;letter-spacing:.02em;color:var(--ink-soft);margin:0 0 8px;font-weight:600;}
+  .quiz-q{font-size:13.5px;margin:0 0 10px;line-height:1.5;}
+  .quiz-opt{display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:6px;border-radius:4px;
+    border:1px solid var(--line);background:#fff;font-size:13px;font-family:'Work Sans',sans-serif;cursor:pointer;}
+  .quiz-opt:hover{border-color:var(--teal);}
+  .quiz-opt.correct{border-color:var(--teal);background:var(--mint);color:var(--teal-deep);font-weight:600;}
+  .quiz-opt.wrong{border-color:var(--coral);background:#fdeee7;color:var(--coral);}
+  .quiz-fb{font-size:13px;margin-top:8px;line-height:1.5;color:var(--ink-soft);}
+  .quiz-score{font-size:12.5px;color:var(--teal-deep);font-weight:600;margin-top:10px;}
+
+  /* ---------- HIERARCHY ---------- */
+  .level-rail{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;
+    align-items:center;gap:0;background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:22px;
+    padding:6px;}
+  .level-stop{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:16px;cursor:pointer;
+    font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+  .level-stop.active{background:var(--teal-deep);color:#fff;}
+  .level-num{width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;display:flex;
+    align-items:center;justify-content:center;font-size:10px;flex-shrink:0;}
+  .level-caption{position:absolute;top:14px;left:16px;right:16px;max-width:420px;}
+  .level-caption .lv-tab{font-size:11px;font-weight:600;color:#fff;background:var(--teal-deep);
+    padding:3px 10px;border-radius:3px;display:inline-block;margin-bottom:6px;}
+  .level-caption p{font-size:13.5px;line-height:1.55;background:rgba(255,255,255,.9);padding:8px 11px;
+    border-radius:4px;margin:0;border:1px solid var(--line);}
+  .hier-nav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;
+    border:1px solid var(--line);background:#fff;font-size:16px;color:var(--teal-deep);cursor:pointer;}
+  .hier-nav.prev{left:16px;} .hier-nav.next{right:16px;}
+  .hier-nav:disabled{opacity:.3;cursor:default;}
+
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ HOME ============ -->
+  <section id="home" class="screen active">
+    <div class="home-wrap">
+      <div class="home-head">
+        <div>
+          <p class="kicker">UNIT: CELLS — INTERACTIVE FIELD GUIDE</p>
+          <h1>Cell Explorer</h1>
+          <p>Four specimen stations. Rotate each cell in 3D, click a structure to identify it, and test what you've found.</p>
+        </div>
+        <span class="unit-tag">IB · Cell Biology</span>
+      </div>
+
+      <div id="hero-stage">
+        <canvas id="hero-canvas"></canvas>
+        <div class="hero-caption">Drag to rotate <b>·</b> this generic cell isn't one of your four stations — it's just saying hello</div>
+      </div>
+
+      <p class="tray-label">Choose a specimen slide to begin.</p>
+      <div class="tray" id="tray"></div>
+    </div>
+  </section>
+
+  <!-- ============ PLANT / ANIMAL CELL (shared template, built twice) ============ -->
+  <section id="plant" class="screen">
+    <div class="topbar">
+      <button class="back-btn" data-back>← Slide tray</button>
+      <h2>Specimen: Plant Cell</h2>
+      <span class="progress-chip" id="plant-progress">0 / 8 found</span>
+    </div>
+    <div class="stage-wrap">
+      <div class="canvas-col">
+        <canvas class="scene-canvas" id="plant-canvas"></canvas>
+        <div class="hint">Drag to rotate · scroll to zoom · click a structure</div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" data-zoom="plant" data-dir="-1">+</button>
+          <button class="zoom-btn" data-zoom="plant" data-dir="1">–</button>
+        </div>
+        <div id="plant-tags"></div>
+      </div>
+      <aside class="side-panel">
+        <div id="plant-info"><p class="info-empty">Click any labelled structure on the cell to see what it is and what it does.</p></div>
+        <div class="checklist">
+          <h4>STRUCTURES TO FIND</h4>
+          <div id="plant-checklist"></div>
+        </div>
+        <div class="badge" id="plant-badge">Specimen fully examined — every structure identified.</div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="animal" class="screen">
+    <div class="topbar">
+      <button class="back-btn" data-back>← Slide tray</button>
+      <h2>Specimen: Animal Cell</h2>
+      <span class="progress-chip" id="animal-progress">0 / 8 found</span>
+    </div>
+    <div class="stage-wrap">
+      <div class="canvas-col">
+        <canvas class="scene-canvas" id="animal-canvas"></canvas>
+        <div class="hint">Drag to rotate · scroll to zoom · click a structure</div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" data-zoom="animal" data-dir="-1">+</button>
+          <button class="zoom-btn" data-zoom="animal" data-dir="1">–</button>
+        </div>
+        <div id="animal-tags"></div>
+      </div>
+      <aside class="side-panel">
+        <div id="animal-info"><p class="info-empty">Click any labelled structure on the cell to see what it is and what it does.</p></div>
+        <div class="checklist">
+          <h4>STRUCTURES TO FIND</h4>
+          <div id="animal-checklist"></div>
+        </div>
+        <div class="badge" id="animal-badge">Specimen fully examined — every structure identified.</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ SPECIALISED CELLS ============ -->
+  <section id="special" class="screen">
+    <div class="topbar">
+      <button class="back-btn" data-back>← Slide tray</button>
+      <h2>Specimen: Specialised Cells</h2>
+      <span class="progress-chip" id="special-progress">1 / 5 viewed</span>
+    </div>
+    <div class="stage-wrap">
+      <div class="canvas-col">
+        <canvas class="scene-canvas" id="special-canvas"></canvas>
+        <div class="specimen-name">
+          <span class="sp-tab" id="sp-tab">ROOT HAIR CELL</span>
+          <h3 id="sp-title">Root hair cell</h3>
+        </div>
+        <div class="hint">Drag to spin this specimen</div>
+        <div class="carousel-nav">
+          <button class="carousel-btn" id="sp-prev">←</button>
+          <button class="carousel-btn" id="sp-next">→</button>
+        </div>
+      </div>
+      <aside class="side-panel">
+        <div id="special-info"></div>
+        <div class="quiz-box">
+          <h4>ADAPTATION CHALLENGE</h4>
+          <p class="quiz-q" id="quiz-q"></p>
+          <div id="quiz-opts"></div>
+          <p class="quiz-fb" id="quiz-fb"></p>
+          <p class="quiz-score" id="quiz-score">Score: 0 / 0</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ CELLS, TISSUES & ORGANS ============ -->
+  <section id="hierarchy" class="screen">
+    <div class="topbar">
+      <button class="back-btn" data-back>← Slide tray</button>
+      <h2>Specimen: Cells, Tissues &amp; Organs</h2>
+      <span class="progress-chip" id="hier-progress">Level 1 / 4</span>
+    </div>
+    <div class="stage-wrap">
+      <div class="canvas-col">
+        <canvas class="scene-canvas" id="hier-canvas"></canvas>
+        <div class="level-caption">
+          <span class="lv-tab" id="hier-tab">LEVEL 1 — CELL</span>
+          <p id="hier-text"></p>
+        </div>
+        <button class="hier-nav prev" id="hier-prev">←</button>
+        <button class="hier-nav next" id="hier-next">→</button>
+        <div class="level-rail" id="level-rail"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* =========================================================================
+   SHARED THREE.JS HELPERS
+   ========================================================================= */
+const clock = new THREE.Clock();
+
+function makeRenderer(canvas){
+  const r = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  r.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  return r;
+}
+
+function fitRenderer(renderer, camera, canvas){
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if(w===0||h===0) return;
+  renderer.setSize(w,h,false);
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+}
+
+// Orbit rig: spherical drag-rotate + wheel zoom, no external addon needed.
+function makeOrbit(canvas, opts){
+  const state = {
+    theta: opts.theta ?? 0.6,
+    phi: opts.phi ?? 1.2,
+    radius: opts.radius ?? 8,
+    minR: opts.minR ?? 3,
+    maxR: opts.maxR ?? 16,
+    target: opts.target ?? new THREE.Vector3(0,0,0),
+    autoRotate: opts.autoRotate ?? false
+  };
+  let dragging=false, lastX=0, lastY=0;
+  canvas.addEventListener('pointerdown', e=>{dragging=true; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointerup', ()=>dragging=false);
+  canvas.addEventListener('pointercancel', ()=>dragging=false);
+  canvas.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    lastX=e.clientX; lastY=e.clientY;
+    state.theta -= dx*0.006;
+    state.phi   -= dy*0.006;
+    state.phi = Math.max(0.35, Math.min(Math.PI-0.35, state.phi));
+  });
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    state.radius += e.deltaY*0.01;
+    state.radius = Math.max(state.minR, Math.min(state.maxR, state.radius));
+  }, {passive:false});
+  return state;
+}
+
+function applyOrbit(camera, state){
+  camera.position.set(
+    state.target.x + state.radius*Math.sin(state.phi)*Math.sin(state.theta),
+    state.target.y + state.radius*Math.cos(state.phi),
+    state.target.z + state.radius*Math.sin(state.phi)*Math.cos(state.theta)
+  );
+  camera.lookAt(state.target);
+}
+
+function isScreenVisible(canvas){
+  const el = canvas.closest('.screen');
+  return !!el && el.classList.contains('active');
+}
+
+function addLights(scene){
+  const amb = new THREE.AmbientLight(0xffffff, 0.65);
+  const d1 = new THREE.DirectionalLight(0xffffff, 0.7);
+  d1.position.set(5,8,6);
+  const d2 = new THREE.DirectionalLight(0xffffff, 0.25);
+  d2.position.set(-6,-3,-4);
+  scene.add(amb,d1,d2);
+}
+
+function lensMat(color, opts={}){
+  return new THREE.MeshPhongMaterial(Object.assign({color, shininess:30}, opts));
+}
+
+/* Project a 3D point to screen space (px) relative to a canvas element */
+function projectToScreen(vec3, camera, canvas){
+  const v = vec3.clone().project(camera);
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  return { x: (v.x*0.5+0.5)*w, y: (-v.y*0.5+0.5)*h, z: v.z };
+}
+
+/* =========================================================================
+   HERO (home banner) — a generic idle-rotating cell, decorative only
+   ========================================================================= */
+(function heroInit(){
+  const canvas = document.getElementById('hero-canvas');
+  const renderer = makeRenderer(canvas);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45,1,0.1,100);
+  addLights(scene);
+
+  const membrane = new THREE.Mesh(new THREE.SphereGeometry(2.1,32,32), lensMat(0x9fd6b8,{transparent:true,opacity:0.28}));
+  scene.add(membrane);
+  const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.75,24,24), lensMat(0x6a4e9b));
+  nucleus.position.set(0.3,0.2,0.1);
+  scene.add(nucleus);
+  const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.22,16,16), lensMat(0x4a3670));
+  nucleolus.position.copy(nucleus.position).add(new THREE.Vector3(0.15,0.1,0.2));
+  scene.add(nucleolus);
+  const mitoPositions = [[-1.1,0.6,0.4],[1.2,-0.5,0.6],[-0.7,-1.0,-0.5],[0.9,1.0,-0.6]];
+  mitoPositions.forEach(p=>{
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.32,16,16), lensMat(0xbd6b3f));
+    m.scale.set(1.6,0.85,0.85);
+    m.position.set(...p);
+    scene.add(m);
+  });
+  for(let i=0;i<14;i++){
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.045,6,6), lensMat(0x2c5a4d));
+    const r = 1.6*Math.random()+0.3;
+    const th = Math.random()*Math.PI*2, ph = Math.random()*Math.PI;
+    dot.position.set(r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph), r*Math.sin(ph)*Math.sin(th));
+    scene.add(dot);
+  }
+
+  const orbit = makeOrbit(canvas,{theta:0.5,phi:1.15,radius:6.5,minR:4,maxR:9});
+  let auto = true;
+  canvas.addEventListener('pointerdown', ()=>auto=false);
+
+  function loop(){
+    requestAnimationFrame(loop);
+    fitRenderer(renderer,camera,canvas);
+    if(auto) orbit.theta += 0.0025;
+    applyOrbit(camera,orbit);
+    renderer.render(scene,camera);
+  }
+  loop();
+})();
+
+/* =========================================================================
+   HOME TRAY
+   ========================================================================= */
+const SPECIMENS = [
+  {id:'plant', tab:'SPECIMEN — PLANT CELL', tabColor:'#1f7a6c', lens:'radial-gradient(circle at 35% 30%, #bfe7cf, #4b9169)',
+    title:'Plant Cell', desc:'Walled, boxy, built to photosynthesise and store water.'},
+  {id:'animal', tab:'SPECIMEN — ANIMAL CELL', tabColor:'#bd6b3f', lens:'radial-gradient(circle at 35% 30%, #f6d2ba, #c07a4b)',
+    title:'Animal Cell', desc:'Flexible membrane only — no wall, no chloroplasts.'},
+  {id:'special', tab:'SPECIMEN — SPECIALISED CELLS', tabColor:'#6a4e9b', lens:'radial-gradient(circle at 35% 30%, #d9c9ef, #6a4e9b)',
+    title:'Specialised Cells', desc:'Five cells shaped by the one job each has to do.'},
+  {id:'hierarchy', tab:'SPECIMEN — CELLS → TISSUES → ORGANS', tabColor:'#0f4a40', lens:'conic-gradient(from 90deg, #1f7a6c, #bd8420, #6a4e9b, #1f7a6c)',
+    title:'Cells, Tissues & Organs', desc:'Zoom out from one cell to a whole organ system.'}
+];
+const tray = document.getElementById('tray');
+SPECIMENS.forEach(s=>{
+  const el = document.createElement('button');
+  el.className='slide';
+  el.innerHTML = `
+    <span class="slide-tab" style="background:${s.tabColor}">${s.tab}</span>
+    <div class="slide-body">
+      <div style="display:flex;align-items:center;">
+        <span class="lens" style="background:${s.lens}"></span>
+        <h2>${s.title}</h2>
+      </div>
+      <p>${s.desc}</p>
+      <div class="slide-meta"><span>Open station</span><span>→</span></div>
+    </div>`;
+  el.addEventListener('click', ()=>showScreen(s.id));
+  tray.appendChild(el);
+});
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='plant') plantApp.onShow();
+  if(id==='animal') animalApp.onShow();
+  if(id==='special') specialApp.onShow();
+  if(id==='hierarchy') hierApp.onShow();
+}
+document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click', ()=>showScreen('home')));
+
+/* =========================================================================
+   CELL BUILDER — shared factory for plant + animal cell scenes
+   ========================================================================= */
+function buildCellApp(config){
+  const canvas = document.getElementById(config.canvasId);
+  const tagsHost = document.getElementById(config.tagsId);
+  const infoHost = document.getElementById(config.infoId);
+  const checklistHost = document.getElementById(config.checklistId);
+  const progressChip = document.getElementById(config.progressId);
+  const badge = document.getElementById(config.badgeId);
+
+  const renderer = makeRenderer(canvas);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45,1,0.1,100);
+  addLights(scene);
+  scene.background = new THREE.Color(config.bg);
+
+  const orbit = makeOrbit(canvas,{theta:0.5,phi:1.2,radius:9,minR:4,maxR:15});
+  const raycaster = new THREE.Raycaster();
+  const clickable = []; // {mesh, tagAnchor, data}
+  const found = new Set();
+  let selectedId = null;
+  let ready=false;
+
+  config.build(scene, clickable);
+
+  // checklist
+  checklistHost.innerHTML = clickable.map(c=>`
+    <div class="check-item" id="${config.canvasId}-chk-${c.data.id}"><span class="dot"></span>${c.data.name}</div>
+  `).join('');
+
+  function renderInfo(data){
+    infoHost.innerHTML = `
+      <div class="info-card">
+        <h3>${data.name}</h3>
+        <p class="role">${data.role}</p>
+        <p>${data.info}</p>
+      </div>`;
+  }
+
+  function selectItem(data){
+    selectedId = data.id;
+    renderInfo(data);
+    if(!found.has(data.id)){
+      found.add(data.id);
+      const row = document.getElementById(`${config.canvasId}-chk-${data.id}`);
+      if(row) row.classList.add('done');
+      progressChip.textContent = `${found.size} / ${clickable.length} found`;
+      if(found.size===clickable.length) badge.classList.add('show');
+    }
+  }
+
+  function findItem(obj){
+    let o = obj;
+    while(o){
+      const it = clickable.find(c=>c.mesh===o);
+      if(it) return it;
+      o = o.parent;
+    }
+    return null;
+  }
+
+  canvas.addEventListener('click', e=>{
+    const rect = canvas.getBoundingClientRect();
+    const ndc = new THREE.Vector2(
+      ((e.clientX-rect.left)/rect.width)*2-1,
+      -((e.clientY-rect.top)/rect.height)*2+1
+    );
+    raycaster.setFromCamera(ndc, camera);
+    // recursive:true so clicks on grouped organelles (Golgi discs, ER sheets,
+    // centriole cylinders) register on their child meshes too.
+    const hits = raycaster.intersectObjects(clickable.map(c=>c.mesh), true);
+    // an enclosing membrane/wall sits in front of everything along the ray,
+    // so prefer the first *inner* structure the ray passes through, and only
+    // fall back to the envelope itself if nothing else was hit.
+    let chosen = null;
+    for(const h of hits){ const it=findItem(h.object); if(it && !it.envelope){ chosen=it; break; } }
+    if(!chosen){ for(const h of hits){ const it=findItem(h.object); if(it){ chosen=it; break; } } }
+    if(chosen) selectItem(chosen.data);
+  });
+
+  document.querySelectorAll(`[data-zoom="${config.key}"]`).forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const dir = parseFloat(btn.dataset.dir);
+      orbit.radius = Math.max(orbit.minR, Math.min(orbit.maxR, orbit.radius + dir*1.2));
+    });
+  });
+
+  function drawTags(){
+    tagsHost.innerHTML='';
+    clickable.forEach(c=>{
+      const pos = projectToScreen(c.mesh.position, camera, canvas);
+      if(pos.z>1) return;
+      const div = document.createElement('div');
+      div.className = 'tag' + (c.data.id===selectedId?' selected':(found.has(c.data.id)?'':' faint'));
+      div.style.left = pos.x+'px';
+      div.style.top = (pos.y-14)+'px';
+      div.textContent = c.data.name;
+      tagsHost.appendChild(div);
+    });
+  }
+
+  function loop(){
+    requestAnimationFrame(loop);
+    if(!ready || !isScreenVisible(canvas)) return;
+    fitRenderer(renderer,camera,canvas);
+    applyOrbit(camera,orbit);
+    renderer.render(scene,camera);
+    drawTags();
+  }
+  loop();
+
+  return { onShow(){ ready=true; } };
+}
+
+/* ---- Organelle content: factually-grounded descriptions (IB MYP/GCSE level) ---- */
+function organelle(id,name,role,info){ return {id,name,role,info}; }
+
+const PLANT_FACTS = {
+  wall:   organelle('wall','Cell wall','STRUCTURE','A rigid layer of cellulose outside the cell membrane. It supports and protects the cell and keeps its shape, even when the cell fills with water.'),
+  plasmo: organelle('plasmo','Plasmodesmata','TRANSPORT','Microscopic channels passing through the plant cell wall, allowing transport and communication between individual plant cells.'),
+  mem:    organelle('mem','Cell membrane','STRUCTURE','A thin, flexible layer just inside the cell wall. It controls which substances move into and out of the cell.'),
+  cyto:   organelle('cyto','Cytoplasm','METABOLISM','Jelly-like fluid where cellular reactions occur and organelles are suspended in constant cytoplasmic streaming.'),
+  nucleus:organelle('nucleus','Nucleus','CONTROL','Contains the cell\'s genetic material (DNA) and controls the cell\'s activities, including growth and division.'),
+  vacuole:organelle('vacuole','Large permanent vacuole','STORAGE','A large sac filled with cell sap. It keeps the cell firm (turgid) by pressing outward on the cell wall, and stores water and nutrients.'),
+  chloro: organelle('chloro','Chloroplast','ENERGY','Contains the green pigment chlorophyll and is the site of photosynthesis, where light energy is converted into glucose.'),
+  mito:   organelle('mito','Mitochondrion','ENERGY','The site of aerobic respiration, releasing energy from glucose for the cell to use.'),
+  golgi:  organelle('golgi','Golgi apparatus','PROCESSING','Packages and modifies proteins made by the cell, often before they are sent out of the cell.'),
+  er:     organelle('er','Endoplasmic reticulum','TRANSPORT','A network of membranes that transports proteins made by ribosomes to other parts of the cell.'),
+  ribo:   organelle('ribo','Ribosomes','PROTEIN SYNTHESIS','Minute molecular granules where amino acids are assembled into proteins following DNA instructions.'),
+  amylo:  organelle('amylo','Amyloplasts (Starch Granules)','STORAGE','Non-pigmented plastids that synthesize and store starch granules for plant energy storage.')
+};
+const ANIMAL_FACTS = {
+  mem:    organelle('mem','Cell membrane','STRUCTURE','Forms the outer boundary of the cell. It controls which substances move into and out of the cell.'),
+  cyto:   organelle('cyto','Cytoplasm','METABOLISM','Jelly-like fluid where cellular reactions occur and organelles are suspended.'),
+  nucleus:organelle('nucleus','Nucleus','CONTROL','Contains the cell\'s genetic material (DNA) and controls the cell\'s activities, including growth and division.'),
+  mito:   organelle('mito','Mitochondrion','ENERGY','The site of aerobic respiration, releasing energy from glucose for the cell to use.'),
+  vacuole:organelle('vacuole','Vacuole (small)','STORAGE','A small, temporary sac that stores water, food or waste — much smaller than the single large vacuole in a plant cell.'),
+  lyso:   organelle('lyso','Lysosome','DIGESTION','Contains enzymes that break down waste materials, old organelles and, in white blood cells, invading microbes.'),
+  centri: organelle('centri','Centrioles','DIVISION','A pair of structures that help organise the fibres which pull chromosomes apart during cell division. Not found in plant cells.'),
+  golgi:  organelle('golgi','Golgi apparatus','PROCESSING','Packages and modifies proteins made by the cell, often before they are sent out of the cell.'),
+  er:     organelle('er','Endoplasmic reticulum','TRANSPORT','A network of membranes that transports proteins made by ribosomes to other parts of the cell.'),
+  ribo:   organelle('ribo','Ribosomes','PROTEIN SYNTHESIS','Minute molecular granules where proteins are synthesized.')
+};
+
+function pushClickable(scene, clickable, mesh, data, envelope){
+  scene.add(mesh);
+  clickable.push({mesh, data, envelope: !!envelope});
+}
+
+const plantApp = buildCellApp({
+  key:'plant', canvasId:'plant-canvas', tagsId:'plant-tags', infoId:'plant-info',
+  checklistId:'plant-checklist', progressId:'plant-progress', badgeId:'plant-badge',
+  bg:'#f4faf6',
+  build(scene, clickable){
+    // cell wall — boxy outline typical of plant cells
+    const wallGeo = new THREE.BoxGeometry(4.6,3.6,3.6);
+    const wallEdges = new THREE.LineSegments(new THREE.EdgesGeometry(wallGeo), new THREE.LineBasicMaterial({color:0x2f6b46, linewidth:2}));
+    scene.add(wallEdges);
+    const wallFace = new THREE.Mesh(wallGeo, lensMat(0xbfe3c9,{transparent:true,opacity:0.08,side:THREE.DoubleSide}));
+    pushClickable(scene, clickable, wallFace, PLANT_FACTS.wall, true);
+
+    // plasmodesmata pore channels
+    const plasmoGroup = new THREE.Group();
+    [[2.3, 0.5, 0], [-2.3, -0.4, 0], [0, 1.8, 0.6], [0, -1.8, -0.6]].forEach(p=>{
+      const t = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.25, 8), lensMat(0x2f6b46));
+      t.position.set(...p);
+      if(Math.abs(p[0]) > 1) t.rotation.z = Math.PI/2;
+      plasmoGroup.add(t);
+    });
+    pushClickable(scene, clickable, plasmoGroup, PLANT_FACTS.plasmo);
+
+    // membrane just inside wall
+    const memGeo = new THREE.BoxGeometry(4.2,3.2,3.2);
+    const membrane = new THREE.Mesh(memGeo, lensMat(0xdff3e4,{transparent:true,opacity:0.12,side:THREE.DoubleSide}));
+    pushClickable(scene, clickable, membrane, PLANT_FACTS.mem, true);
+
+    // cytoplasm fluid
+    const cytoGeo = new THREE.BoxGeometry(4.0, 3.0, 3.0);
+    const cytoplasm = new THREE.Mesh(cytoGeo, lensMat(0xa8e6cf,{transparent:true,opacity:0.06,side:THREE.DoubleSide}));
+    pushClickable(scene, clickable, cytoplasm, PLANT_FACTS.cyto, true);
+
+    // big central vacuole
+    const vac = new THREE.Mesh(new THREE.SphereGeometry(1.55,28,28), lensMat(0x8fc6e0,{transparent:true,opacity:0.55}));
+    vac.position.set(0.2,-0.1,0);
+    pushClickable(scene, clickable, vac, PLANT_FACTS.vacuole);
+
+    // nucleus, pushed to the side by the vacuole
+    const nuc = new THREE.Mesh(new THREE.SphereGeometry(0.55,24,24), lensMat(0x6a4e9b));
+    nuc.position.set(-1.55,0.9,0.7);
+    pushClickable(scene, clickable, nuc, PLANT_FACTS.nucleus);
+
+    // chloroplasts near the periphery
+    const chloroSpots = [[1.7,1.1,0.9],[-1.7,-1.0,-0.8],[1.6,-1.1,-1.0],[-1.6,1.2,-0.7],[0.2,1.3,1.3]];
+    chloroSpots.forEach((p,i)=>{
+      const c = new THREE.Mesh(new THREE.SphereGeometry(0.32,16,16), lensMat(0x3c8d53));
+      c.scale.set(1,0.55,0.75);
+      c.position.set(...p);
+      pushClickable(scene, clickable, c, PLANT_FACTS.chloro);
+    });
+
+    // mitochondria
+    [[0.9,-1.3,0.9],[-0.6,0.4,-1.4],[1.5,0.3,-1.1]].forEach(p=>{
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.24,14,14), lensMat(0xbd6b3f));
+      m.scale.set(1.7,0.8,0.8);
+      m.position.set(...p);
+      pushClickable(scene, clickable, m, PLANT_FACTS.mito);
+    });
+
+    // golgi stack
+    const golgiGroup = new THREE.Group();
+    for(let i=0;i<4;i++){
+      const disc = new THREE.Mesh(new THREE.TorusGeometry(0.28,0.045,8,20), lensMat(0xc98a1f));
+      disc.rotation.x = Math.PI/2;
+      disc.position.y = i*0.11;
+      golgiGroup.add(disc);
+    }
+    golgiGroup.position.set(-1.4,-1.1,1.1);
+    golgiGroup.rotation.z = 0.3;
+    pushClickable(scene, clickable, golgiGroup, PLANT_FACTS.golgi);
+
+    // ER — small stacked membrane sheets
+    const erGroup = new THREE.Group();
+    for(let i=0;i<3;i++){
+      const sheet = new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.45), lensMat(0xd98ba0,{transparent:true,opacity:0.85,side:THREE.DoubleSide}));
+      sheet.position.set(0, i*0.16, 0);
+      sheet.rotation.y = 0.5;
+      erGroup.add(sheet);
+    }
+    erGroup.position.set(1.3,1.2,-0.6);
+    pushClickable(scene, clickable, erGroup, PLANT_FACTS.er);
+
+    // ribosomes
+    const riboGroup = new THREE.Group();
+    [[-1.2, 1.2, 0.7], [-0.5, 1.3, 0.4], [0.8, 1.3, -0.4], [1.2, -0.4, 0.8]].forEach(pos=>{
+      const r = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), lensMat(0xe6a13b));
+      r.position.set(...pos);
+      riboGroup.add(r);
+    });
+    pushClickable(scene, clickable, riboGroup, PLANT_FACTS.ribo);
+
+    // amyloplasts (starch granules)
+    const amyloGroup = new THREE.Group();
+    [[-1.0, -0.7, -0.8], [0.7, 1.0, 0.7]].forEach(pos=>{
+      const a = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), lensMat(0xede8d0));
+      a.scale.set(1.2, 0.8, 0.8);
+      a.position.set(...pos);
+      amyloGroup.add(a);
+    });
+    pushClickable(scene, clickable, amyloGroup, PLANT_FACTS.amylo);
+  }
+});
+
+const animalApp = buildCellApp({
+  key:'animal', canvasId:'animal-canvas', tagsId:'animal-tags', infoId:'animal-info',
+  checklistId:'animal-checklist', progressId:'animal-progress', badgeId:'animal-badge',
+  bg:'#fdf7f2',
+  build(scene, clickable){
+    // irregular membrane blob — no wall
+    const memGeo = new THREE.IcosahedronGeometry(1.9,2);
+    const posAttr = memGeo.attributes.position;
+    for(let i=0;i<posAttr.count;i++){
+      const v = new THREE.Vector3().fromBufferAttribute(posAttr,i);
+      const n = v.clone().normalize();
+      const bump = 1 + 0.06*Math.sin(v.x*3)+0.05*Math.cos(v.y*4);
+      v.copy(n.multiplyScalar(v.length()*bump));
+      posAttr.setXYZ(i,v.x,v.y,v.z);
+    }
+    memGeo.computeVertexNormals();
+    const membrane = new THREE.Mesh(memGeo, lensMat(0xf6d2ba,{transparent:true,opacity:0.22}));
+    pushClickable(scene, clickable, membrane, ANIMAL_FACTS.mem, true);
+
+    const nuc = new THREE.Mesh(new THREE.SphereGeometry(0.68,24,24), lensMat(0x6a4e9b));
+    nuc.position.set(-0.2,0.15,0.1);
+    pushClickable(scene, clickable, nuc, ANIMAL_FACTS.nucleus);
+
+    [[1.1,0.7,0.5],[-1.0,-0.6,0.6],[0.7,-0.9,-0.7],[-1.1,0.6,-0.6],[0.2,1.1,0.8]].forEach(p=>{
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.24,14,14), lensMat(0xbd6b3f));
+      m.scale.set(1.7,0.8,0.8);
+      m.position.set(...p);
+      pushClickable(scene, clickable, m, ANIMAL_FACTS.mito);
+    });
+
+    [[1.3,-0.2,0.9],[-0.6,1.0,-0.9],[0.9,0.9,-0.4]].forEach(p=>{
+      const v = new THREE.Mesh(new THREE.SphereGeometry(0.2,16,16), lensMat(0x8fc6e0,{transparent:true,opacity:0.7}));
+      v.position.set(...p);
+      pushClickable(scene, clickable, v, ANIMAL_FACTS.vacuole);
+    });
+
+    [[-1.2,-0.9,0.3],[0.4,-1.2,0.6]].forEach(p=>{
+      const l = new THREE.Mesh(new THREE.SphereGeometry(0.17,14,14), lensMat(0xc98a1f));
+      l.position.set(...p);
+      pushClickable(scene, clickable, l, ANIMAL_FACTS.lyso);
+    });
+
+    // centrioles — pair of perpendicular cylinders near nucleus
+    const centriGroup = new THREE.Group();
+    const c1 = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.5,10), lensMat(0x0f4a40));
+    const c2 = c1.clone(); c2.rotation.z = Math.PI/2; c2.position.x=0.15;
+    centriGroup.add(c1,c2);
+    centriGroup.position.set(-1.0,-0.4,0.9);
+    pushClickable(scene, clickable, centriGroup, ANIMAL_FACTS.centri);
+
+    const golgiGroup = new THREE.Group();
+    for(let i=0;i<4;i++){
+      const disc = new THREE.Mesh(new THREE.TorusGeometry(0.26,0.04,8,20), lensMat(0xc98a1f));
+      disc.rotation.x = Math.PI/2;
+      disc.position.y = i*0.1;
+      golgiGroup.add(disc);
+    }
+    golgiGroup.position.set(1.1,-0.9,-0.6);
+    golgiGroup.rotation.z = -0.25;
+    pushClickable(scene, clickable, golgiGroup, ANIMAL_FACTS.golgi);
+
+    const erGroup = new THREE.Group();
+    for(let i=0;i<3;i++){
+      const sheet = new THREE.Mesh(new THREE.PlaneGeometry(0.6,0.4), lensMat(0xd98ba0,{transparent:true,opacity:0.85,side:THREE.DoubleSide}));
+      sheet.position.set(0, i*0.15, 0);
+      sheet.rotation.y = 0.5;
+      erGroup.add(sheet);
+    }
+    erGroup.position.set(-0.9,1.0,-0.6);
+    pushClickable(scene, clickable, erGroup, ANIMAL_FACTS.er);
+
+    // cytoplasm fluid
+    const cytoMesh = new THREE.Mesh(new THREE.SphereGeometry(1.75, 20, 20), lensMat(0xf6d2ba,{transparent:true,opacity:0.06,side:THREE.DoubleSide}));
+    pushClickable(scene, clickable, cytoMesh, ANIMAL_FACTS.cyto, true);
+
+    // ribosomes
+    const riboGroup = new THREE.Group();
+    [[-0.6, 0.8, 0.4], [0.6, -0.4, 0.6], [-0.5, -0.7, 0.3], [0.4, 0.2, -0.6]].forEach(pos=>{
+      const r = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), lensMat(0xbd8420));
+      r.position.set(...pos);
+      riboGroup.add(r);
+    });
+    pushClickable(scene, clickable, riboGroup, ANIMAL_FACTS.ribo);
+  }
+});
+
+/* =========================================================================
+   SPECIALISED CELLS — carousel + quiz
+   ========================================================================= */
+const specialApp = (function(){
+  const canvas = document.getElementById('special-canvas');
+  const renderer = makeRenderer(canvas);
+  const camera = new THREE.PerspectiveCamera(45,1,0.1,100);
+  const orbit = makeOrbit(canvas,{theta:0.4,phi:1.25,radius:5.5,minR:3,maxR:8});
+
+  const SPECIMENS_LIST = [
+    { id:'root', name:'Root hair cell', tab:'ROOT HAIR CELL', color:0xbd8420,
+      adaptation:'A long, thin extension of the cell gives it a very large surface area.',
+      role:'ABSORPTION',
+      info:'Root hair cells sit in the outer layer of a plant root. Their long, thin extension creates a large surface area in contact with the soil, so water and mineral ions can be absorbed more efficiently.',
+      build(scene){
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.55,20,20), lensMat(0xbd8420));
+        scene.add(body);
+        const hair = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.1,2.6,12), lensMat(0xd8a94a));
+        hair.position.set(0,-1.6,0); hair.rotation.z=0.15;
+        scene.add(hair);
+      } },
+    { id:'rbc', name:'Red blood cell', tab:'RED BLOOD CELL', color:0xc23b3b,
+      adaptation:'A biconcave disc shape with no nucleus.',
+      role:'TRANSPORT',
+      info:'Red blood cells are shaped like flattened discs, dipped in on both sides (biconcave). This increases surface area for absorbing oxygen and lets them fold to squeeze through narrow capillaries. They have no nucleus, leaving more room to carry oxygen.',
+      build(scene){
+        const outer = new THREE.Mesh(new THREE.SphereGeometry(0.85,28,28), lensMat(0xc23b3b));
+        outer.scale.set(1,0.42,1);
+        scene.add(outer);
+        const dimpleTop = new THREE.Mesh(new THREE.SphereGeometry(0.5,20,20), lensMat(0xc23b3b));
+        dimpleTop.scale.set(1,0.3,1); dimpleTop.position.y=0.16;
+        scene.add(dimpleTop);
+        const dimpleBottom = dimpleTop.clone(); dimpleBottom.position.y=-0.16;
+        scene.add(dimpleBottom);
+      } },
+    { id:'neuron', name:'Nerve cell (neuron)', tab:'NERVE CELL', color:0x3d6fa8,
+      adaptation:'A long axon and branching dendrites.',
+      role:'COMMUNICATION',
+      info:'Neurons have a cell body with many branching dendrites to receive signals from other cells, and one long axon that carries an electrical impulse over a distance — sometimes over a metre in the human body.',
+      build(scene){
+        const body = new THREE.Mesh(new THREE.SphereGeometry(0.42,20,20), lensMat(0x3d6fa8));
+        scene.add(body);
+        const axon = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,2.8,10), lensMat(0x5f8fc4));
+        axon.rotation.z=Math.PI/2; axon.position.x=1.7;
+        scene.add(axon);
+        for(let i=0;i<5;i++){
+          const d = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.05,0.6,8), lensMat(0x5f8fc4));
+          const ang = (i/5)*Math.PI*1.4 - 1.2;
+          d.position.set(-0.35+Math.cos(ang)*0.35, Math.sin(ang)*0.35, 0);
+          d.rotation.z = ang+Math.PI/2;
+          scene.add(d);
+        }
+        for(let i=0;i<3;i++){
+          const t = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.04,0.35,8), lensMat(0x5f8fc4));
+          const ang = -0.4+i*0.4;
+          t.position.set(3.0+Math.cos(ang)*0.15, Math.sin(ang)*0.3, 0);
+          t.rotation.z = ang;
+          scene.add(t);
+        }
+      } },
+    { id:'sperm', name:'Sperm cell', tab:'SPERM CELL', color:0x3c8d53,
+      adaptation:'A whip-like tail and a densely packed mid-piece of mitochondria.',
+      role:'REPRODUCTION',
+      info:'A sperm cell has a streamlined head containing DNA, a mid-piece packed with mitochondria for energy, and a long flagellum (tail) that whips side to side to propel the cell towards an egg.',
+      build(scene){
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.32,0.55,16), lensMat(0x3c8d53));
+        head.rotation.x = Math.PI/2; head.position.x=-1.1;
+        scene.add(head);
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-0.8,0,0), new THREE.Vector3(0,0.25,0),
+          new THREE.Vector3(0.8,-0.25,0), new THREE.Vector3(1.6,0.25,0),
+          new THREE.Vector3(2.3,-0.2,0)
+        ]);
+        const tubeGeo = new THREE.TubeGeometry(curve,40,0.045,8,false);
+        const tail = new THREE.Mesh(tubeGeo, lensMat(0x6fb583));
+        scene.add(tail);
+      } },
+    { id:'palisade', name:'Palisade mesophyll cell', tab:'PALISADE CELL', color:0x2f7a45,
+      adaptation:'A tall column shape packed with chloroplasts near the top surface of the leaf.',
+      role:'PHOTOSYNTHESIS',
+      info:'Palisade cells are long and column-shaped, packed tightly together just under the upper surface of a leaf. They contain many chloroplasts, positioned to absorb as much sunlight as possible for photosynthesis.',
+      build(scene){
+        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,2.0,20), lensMat(0xbfe3c9,{transparent:true,opacity:0.35}));
+        scene.add(col);
+        for(let i=0;i<10;i++){
+          const c = new THREE.Mesh(new THREE.SphereGeometry(0.14,12,12), lensMat(0x2f7a45));
+          c.scale.set(1,0.6,0.8);
+          const y = -0.75+Math.random()*1.5;
+          const ang = Math.random()*Math.PI*2;
+          c.position.set(Math.cos(ang)*0.22, y, Math.sin(ang)*0.22);
+          scene.add(c);
+        }
+      } }
+  ];
+
+  let sceneObjs = []; // one THREE.Scene per specimen, built lazily
+  let idx = 0;
+  let ready=false;
+
+  function getScene(i){
+    if(sceneObjs[i]) return sceneObjs[i];
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#f7f3fb');
+    addLights(scene);
+    SPECIMENS_LIST[i].build(scene);
+    sceneObjs[i]=scene;
+    return scene;
+  }
+
+  const tabEl = document.getElementById('sp-tab');
+  const titleEl = document.getElementById('sp-title');
+  const infoEl = document.getElementById('special-info');
+  const progressEl = document.getElementById('special-progress');
+  const seen = new Set();
+
+  function renderPanel(){
+    const s = SPECIMENS_LIST[idx];
+    tabEl.textContent = s.tab;
+    titleEl.textContent = s.name;
+    infoEl.innerHTML = `
+      <div class="info-card">
+        <h3>${s.name}</h3>
+        <p class="role">${s.role}</p>
+        <p><b>Adaptation:</b> ${s.adaptation}</p>
+        <p>${s.info}</p>
+      </div>`;
+    seen.add(idx);
+    progressEl.textContent = `${seen.size} / ${SPECIMENS_LIST.length} viewed`;
+    orbit.theta = 0.4; orbit.radius = 5.5;
+  }
+
+  document.getElementById('sp-prev').addEventListener('click', ()=>{ idx=(idx-1+SPECIMENS_LIST.length)%SPECIMENS_LIST.length; renderPanel(); });
+  document.getElementById('sp-next').addEventListener('click', ()=>{ idx=(idx+1)%SPECIMENS_LIST.length; renderPanel(); });
+
+  function loop(){
+    requestAnimationFrame(loop);
+    if(!ready || !isScreenVisible(canvas)) return;
+    fitRenderer(renderer,camera,canvas);
+    applyOrbit(camera,orbit);
+    renderer.render(getScene(idx),camera);
+  }
+  loop();
+
+  /* ---- quiz ---- */
+  const QUIZ = [
+    {q:'Which cell has a large surface area from a long, thin extension to absorb water and minerals?', a:'root'},
+    {q:'Which cell has no nucleus and a biconcave disc shape to carry more oxygen?', a:'rbc'},
+    {q:'Which cell has a long axon to carry electrical impulses over distance?', a:'neuron'},
+    {q:'Which cell has a whip-like tail and mitochondria packed in its mid-piece?', a:'sperm'},
+    {q:'Which cell is column-shaped and packed with chloroplasts to capture sunlight?', a:'palisade'}
+  ];
+  let qOrder = [0,1,2,3,4]; let qi=0; let score=0; let answered=0;
+
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+  function renderQuiz(){
+    const item = QUIZ[qOrder[qi]];
+    document.getElementById('quiz-q').textContent = item.q;
+    document.getElementById('quiz-fb').textContent = '';
+    const opts = shuffle(SPECIMENS_LIST.map(s=>s.id).slice());
+    const optsHost = document.getElementById('quiz-opts');
+    optsHost.innerHTML='';
+    opts.forEach(optId=>{
+      const s = SPECIMENS_LIST.find(x=>x.id===optId);
+      const btn = document.createElement('button');
+      btn.className='quiz-opt';
+      btn.textContent = s.name;
+      btn.addEventListener('click', ()=>{
+        if(btn.dataset.locked) return;
+        optsHost.querySelectorAll('.quiz-opt').forEach(b=>b.dataset.locked='1');
+        answered++;
+        if(optId===item.a){
+          btn.classList.add('correct');
+          score++;
+          document.getElementById('quiz-fb').textContent = 'Correct — ' + s.adaptation;
+        } else {
+          btn.classList.add('wrong');
+          const correctBtn = [...optsHost.children].find(b=>b.textContent===SPECIMENS_LIST.find(x=>x.id===item.a).name);
+          if(correctBtn) correctBtn.classList.add('correct');
+          document.getElementById('quiz-fb').textContent = 'Not quite — the answer is ' + SPECIMENS_LIST.find(x=>x.id===item.a).name + '.';
+        }
+        document.getElementById('quiz-score').textContent = `Score: ${score} / ${answered}`;
+        setTimeout(()=>{ qi=(qi+1)%qOrder.length; if(qi===0) shuffle(qOrder); renderQuiz(); }, 1800);
+      });
+      optsHost.appendChild(btn);
+    });
+  }
+
+  return {
+    onShow(){ ready=true; renderPanel(); renderQuiz(); }
+  };
+})();
+
+/* =========================================================================
+   CELLS → TISSUES → ORGANS
+   ========================================================================= */
+const hierApp = (function(){
+  const canvas = document.getElementById('hier-canvas');
+  const renderer = makeRenderer(canvas);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#f4faf6');
+  const camera = new THREE.PerspectiveCamera(45,1,0.1,200);
+  addLights(scene);
+  const orbit = makeOrbit(canvas,{theta:0.5,phi:1.2,radius:6,minR:3,maxR:30});
+  let ready=false;
+
+  const LEVELS = [
+    { tab:'LEVEL 1 — CELL', text:'A single epithelial cell — the basic unit of a living organism. Every tissue is built from many cells like this one.', radius:6 },
+    { tab:'LEVEL 2 — TISSUE', text:'A tissue is a group of similar cells working together to do the same job — here, a sheet of epithelial cells lining a surface.', radius:11 },
+    { tab:'LEVEL 3 — ORGAN', text:'An organ (e.g. the heart) is built from several different tissues — muscle, connective and epithelial — layered together to perform a specific function.', radius:17 },
+    { tab:'LEVEL 4 — ORGAN SYSTEM', text:'An organ system is a group of organs working together for a shared purpose — here, the heart and blood vessels forming the circulatory system.', radius:26 }
+  ];
+  let level = 0;
+
+  // ---- build persistent groups for each level, all present in one scene ----
+  const cellGroup = new THREE.Group();
+  const cellMesh = new THREE.Mesh(new THREE.SphereGeometry(1,24,24), lensMat(0x9fd6b8,{transparent:true,opacity:0.85}));
+  const cellNucleus = new THREE.Mesh(new THREE.SphereGeometry(0.35,16,16), lensMat(0x6a4e9b));
+  cellNucleus.position.set(0.2,0.1,0.2);
+  cellGroup.add(cellMesh, cellNucleus);
+  scene.add(cellGroup);
+
+  const tissueGroup = new THREE.Group();
+  for(let x=-2;x<=2;x++){
+    for(let y=-2;y<=2;y++){
+      const c = new THREE.Mesh(new THREE.SphereGeometry(0.62,14,14), lensMat(0x9fd6b8,{transparent:true,opacity:0.85}));
+      c.position.set(x*1.35,y*1.35,0);
+      const n = new THREE.Mesh(new THREE.SphereGeometry(0.2,10,10), lensMat(0x6a4e9b));
+      n.position.set(x*1.35+0.12,y*1.35+0.08,0.15);
+      tissueGroup.add(c,n);
+    }
+  }
+  tissueGroup.visible=false;
+  scene.add(tissueGroup);
+
+  const organGroup = new THREE.Group();
+  // simplified heart-like organ: layered shells = tissue types
+  const outerMuscle = new THREE.Mesh(new THREE.SphereGeometry(3.1,24,24), lensMat(0xb3474f,{transparent:true,opacity:0.9}));
+  outerMuscle.scale.set(1,1.25,1);
+  const midConnective = new THREE.Mesh(new THREE.SphereGeometry(2.5,24,24), lensMat(0xd8a94a,{transparent:true,opacity:0.55}));
+  midConnective.scale.set(1,1.2,1);
+  const innerEpithelial = new THREE.Mesh(new THREE.SphereGeometry(1.9,24,24), lensMat(0xe6a9bd,{transparent:true,opacity:0.5}));
+  innerEpithelial.scale.set(1,1.15,1);
+  organGroup.add(outerMuscle, midConnective, innerEpithelial);
+  organGroup.visible=false;
+  scene.add(organGroup);
+
+  const systemGroup = new THREE.Group();
+  const heart = organGroup.clone();
+  heart.visible = true;
+  heart.scale.set(0.5,0.5,0.5);
+  heart.position.set(0,0,0);
+  systemGroup.add(heart);
+  function vesselTo(x,y,z){
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0,0,0), new THREE.Vector3(x*0.5,y*0.5,z*0.5), new THREE.Vector3(x,y,z)
+    ]);
+    return new THREE.Mesh(new THREE.TubeGeometry(curve,20,0.12,8,false), lensMat(0xb3474f));
+  }
+  const vesselTargets = [[5,3,0],[-5,3,0],[4,-4,2],[-4,-4,-2],[0,5,3]];
+  vesselTargets.forEach(([x,y,z])=>{
+    systemGroup.add(vesselTo(x,y,z));
+    const organIcon = new THREE.Mesh(new THREE.SphereGeometry(0.6,14,14), lensMat(0xe6a9bd,{transparent:true,opacity:0.85}));
+    organIcon.position.set(x,y,z);
+    systemGroup.add(organIcon);
+  });
+  systemGroup.visible=false;
+  scene.add(systemGroup);
+
+  function applyLevel(){
+    cellGroup.visible = level===0;
+    tissueGroup.visible = level===1;
+    organGroup.visible = level===2;
+    systemGroup.visible = level===3;
+    orbit.radius = LEVELS[level].radius;
+    document.getElementById('hier-tab').textContent = LEVELS[level].tab;
+    document.getElementById('hier-text').textContent = LEVELS[level].text;
+    document.getElementById('hier-progress').textContent = `Level ${level+1} / 4`;
+    document.getElementById('hier-prev').disabled = level===0;
+    document.getElementById('hier-next').disabled = level===LEVELS.length-1;
+    document.querySelectorAll('.level-stop').forEach((el,i)=>el.classList.toggle('active', i===level));
+  }
+
+  const rail = document.getElementById('level-rail');
+  LEVELS.forEach((l,i)=>{
+    const stop = document.createElement('div');
+    stop.className='level-stop';
+    stop.innerHTML = `<span class="level-num">${i+1}</span><span>${['Cell','Tissue','Organ','System'][i]}</span>`;
+    stop.addEventListener('click', ()=>{ level=i; applyLevel(); });
+    rail.appendChild(stop);
+  });
+
+  document.getElementById('hier-prev').addEventListener('click', ()=>{ if(level>0){level--; applyLevel();} });
+  document.getElementById('hier-next').addEventListener('click', ()=>{ if(level<LEVELS.length-1){level++; applyLevel();} });
+
+  function loop(){
+    requestAnimationFrame(loop);
+    if(!ready || !isScreenVisible(canvas)) return;
+    fitRenderer(renderer,camera,canvas);
+    applyOrbit(camera,orbit);
+    renderer.render(scene,camera);
+  }
+  loop();
+
+  return { onShow(){ ready=true; applyLevel(); } };
+})();
+
+</script>
+</body>
+</html>
