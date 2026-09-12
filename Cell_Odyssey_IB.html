@@ -653,11 +653,363 @@ html, body {
   padding: 16px 20px; border-bottom: 1px solid var(--border-line);
   display: flex; justify-content: space-between; align-items: center;
 }
-.modal-body { padding: 20px; overflow-y: auto; font-size: 14.5px; line-height: 1.6; }
 .modal-footer {
   padding: 14px 20px; border-top: 1px solid var(--border-line);
   display: flex; justify-content: flex-end; gap: 10px;
 }
+
+/* =========================================================================
+   LANDING HUB SCREEN & CELL BUILDER ARCADE STYLES
+   ========================================================================= */
+.landing-hub-screen {
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle at center, rgba(14,35,30,0.92) 0%, rgba(4,12,10,0.98) 100%);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  padding: 30px; text-align: center; overflow-y: auto;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.landing-hub-screen.hidden {
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.hub-hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(46,191,165,0.18); border: 1px solid var(--teal-prime);
+  color: var(--teal-prime); font-family: var(--font-mono); font-size: 12px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 6px 16px; border-radius: 20px; margin-bottom: 14px;
+}
+.hub-hero-title {
+  font-family: var(--font-display); font-size: clamp(28px, 4.5vw, 48px);
+  font-weight: 700; color: #ffffff; letter-spacing: -0.02em;
+  text-shadow: 0 0 30px rgba(46,191,165,0.5); margin-bottom: 10px; line-height: 1.15;
+}
+.hub-hero-title span {
+  background: linear-gradient(135deg, #51cf66 0%, #2ebfa5 50%, #38d9a9 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hub-hero-sub {
+  font-size: clamp(14px, 1.8vw, 17px); color: var(--ink-muted);
+  max-width: 680px; margin: 0 auto 36px; line-height: 1.55;
+}
+.hub-cards-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 440px));
+  gap: 28px; width: 100%; max-width: 960px; justify-content: center;
+}
+.hub-choice-card {
+  background: linear-gradient(180deg, rgba(16,42,36,0.85) 0%, rgba(8,20,17,0.92) 100%);
+  border: 2px solid var(--border-bright); border-radius: 18px;
+  padding: 32px 28px; text-align: left; position: relative;
+  display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+.hub-choice-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--teal-prime);
+  box-shadow: 0 24px 50px rgba(0,0,0,0.8), 0 0 30px rgba(46,191,165,0.35);
+}
+.hub-choice-card.activity-card {
+  border-color: #38d9a9;
+  background: linear-gradient(180deg, rgba(14,48,38,0.9) 0%, rgba(6,22,17,0.95) 100%);
+}
+.hub-choice-card.activity-card:hover {
+  border-color: #51cf66;
+  box-shadow: 0 24px 50px rgba(0,0,0,0.8), 0 0 36px rgba(81,207,102,0.45);
+}
+.card-top-tag {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 16px;
+}
+.card-top-tag.arcade { background: rgba(81,207,102,0.2); color: #51cf66; border: 1px solid #51cf66; }
+.card-top-tag.story { background: rgba(56,217,169,0.2); color: #38d9a9; border: 1px solid #38d9a9; }
+.hub-card-title {
+  font-family: var(--font-display); font-size: 24px; font-weight: 700;
+  color: #ffffff; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+}
+.hub-card-desc {
+  font-size: 14px; line-height: 1.5; color: var(--ink-muted); margin-bottom: 20px;
+}
+.hub-feature-list {
+  list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-direction: column; gap: 8px;
+}
+.hub-feature-list li {
+  font-size: 13px; color: var(--ink-light); display: flex; align-items: center; gap: 8px;
+}
+.hub-card-btn {
+  width: 100%; padding: 14px 20px; border-radius: 10px; font-size: 15px; font-weight: 700;
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s ease;
+}
+.hub-card-btn.primary {
+  background: linear-gradient(135deg, #2ecc71 0%, #1abc9c 100%);
+  color: #04120f; box-shadow: 0 8px 24px rgba(46,204,113,0.35);
+}
+.hub-card-btn.primary:hover {
+  background: linear-gradient(135deg, #51cf66 0%, #20c997 100%);
+  transform: scale(1.02); box-shadow: 0 10px 30px rgba(81,207,102,0.5);
+}
+.hub-card-btn.secondary {
+  background: rgba(255,255,255,0.08); color: #ffffff;
+  border: 1px solid var(--border-bright);
+}
+.hub-card-btn.secondary:hover {
+  background: var(--teal-prime); color: var(--ink-dark);
+  transform: scale(1.02);
+}
+
+/* ================= CELL BUILDER SCREEN STYLES ================= */
+#act-screen-builder {
+  position: absolute; inset: 0; z-index: 20; display: none;
+  background: radial-gradient(circle at center, rgba(10,28,24,0.95) 0%, rgba(4,12,10,0.98) 100%);
+  flex-direction: column; overflow: hidden;
+}
+#act-screen-builder.active { display: flex; }
+
+.builder-top-bar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  padding: 12px 24px; background: rgba(7,18,16,0.85); border-bottom: 1px solid var(--border-line);
+  z-index: 10;
+}
+.builder-mode-pills { display: flex; gap: 8px; }
+.builder-pill-btn {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border-bright);
+  color: var(--ink-muted); font-size: 13px; font-weight: 700;
+  padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease;
+  display: flex; align-items: center; gap: 6px;
+}
+.builder-pill-btn:hover { color: #fff; border-color: var(--teal-prime); }
+.builder-pill-btn.active {
+  background: var(--teal-prime); color: var(--ink-dark); border-color: var(--teal-prime);
+  box-shadow: 0 0 16px rgba(46,191,165,0.4);
+}
+.builder-pill-btn.active.animal {
+  background: var(--amber); border-color: var(--amber);
+  box-shadow: 0 0 16px rgba(230,161,59,0.4);
+}
+.builder-stats-bar { display: flex; align-items: center; gap: 20px; }
+.builder-stat-item {
+  display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+}
+.stat-pill {
+  padding: 3px 8px; border-radius: 4px; font-weight: 700;
+}
+.stat-pill.energy { background: rgba(230,161,59,0.2); color: var(--amber); border: 1px solid var(--amber); }
+.stat-pill.health { background: rgba(46,204,113,0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+.stat-pill.danger { background: rgba(231,76,60,0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+
+.builder-body-layout {
+  flex: 1; display: grid; grid-template-columns: 340px 1fr; overflow: hidden; position: relative;
+}
+@media (max-width: 960px) {
+  .builder-body-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+}
+
+/* Inventory Tray */
+.builder-inventory-panel {
+  background: rgba(6,16,14,0.9); border-right: 1px solid var(--border-line);
+  padding: 18px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; z-index: 5;
+}
+.builder-tray-header {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--amber);
+  text-transform: uppercase; letter-spacing: 0.08em; display: flex; justify-content: space-between; align-items: center;
+}
+.builder-organelle-list {
+  display: grid; grid-template-columns: 1fr; gap: 10px;
+}
+.organelle-drag-card {
+  background: rgba(16,38,32,0.8); border: 1.5px solid var(--border-bright);
+  border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px;
+  cursor: grab; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); user-select: none;
+}
+.organelle-drag-card:active { cursor: grabbing; }
+.organelle-drag-card:hover {
+  transform: translateX(4px); border-color: var(--teal-prime);
+  background: rgba(22,54,46,0.9); box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+.organelle-drag-card.docked {
+  opacity: 0.35; pointer-events: none; border-color: rgba(255,255,255,0.1);
+}
+.organelle-icon-bubble {
+  width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 22px; flex-shrink: 0;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+.organelle-info { flex: 1; min-width: 0; }
+.organelle-name { font-size: 13.5px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.organelle-sub { font-size: 11px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.organelle-badge-tag {
+  font-size: 9.5px; font-family: var(--font-mono); padding: 2px 6px; border-radius: 4px;
+  display: inline-block; margin-top: 4px; font-weight: 700;
+}
+.organelle-badge-tag.plant { background: rgba(81,207,102,0.15); color: #51cf66; border: 1px solid #51cf66; }
+.organelle-badge-tag.animal { background: rgba(230,161,59,0.15); color: var(--amber); border: 1px solid var(--amber); }
+.organelle-badge-tag.both { background: rgba(56,217,169,0.15); color: #38d9a9; border: 1px solid #38d9a9; }
+
+/* Bio-Chamber Stage */
+.builder-chamber-stage {
+  position: relative; width: 100%; height: 100%; display: flex; align-items: center;
+  justify-content: center; overflow: hidden; padding: 20px;
+}
+.cell-chamber-canvas {
+  position: relative; width: min(680px, 90%); aspect-ratio: 1.15;
+  background: radial-gradient(ellipse at center, rgba(20,54,46,0.6) 0%, rgba(8,24,20,0.85) 100%);
+  border: 4px solid var(--teal-prime); border-radius: 60px;
+  box-shadow: 0 0 40px rgba(46,191,165,0.25), inset 0 0 50px rgba(0,0,0,0.6);
+  transition: all 0.4s ease; display: flex; align-items: center; justify-content: center;
+}
+.cell-chamber-canvas.plant-cell-shape {
+  border-radius: 40px; border: 6px solid #2ecc71;
+  box-shadow: 0 0 50px rgba(46,204,113,0.3), inset 0 0 0 6px rgba(46,204,113,0.2);
+}
+.cell-chamber-canvas.animal-cell-shape {
+  border-radius: 50%; border: 4px solid #f39c12;
+  box-shadow: 0 0 50px rgba(243,156,18,0.3);
+}
+
+/* Docking Bays */
+.dock-slot {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 82px; height: 82px; border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.3); background: rgba(0,0,0,0.4);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.25s ease; z-index: 4;
+}
+.dock-slot:hover {
+  border-color: var(--teal-prime); background: rgba(46,191,165,0.15); transform: translate(-50%, -50%) scale(1.08);
+}
+.dock-slot.drag-over {
+  border-color: #51cf66; background: rgba(81,207,102,0.3); transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 0 25px rgba(81,207,102,0.6);
+}
+.dock-slot.occupied {
+  border-style: solid; border-color: var(--teal-prime); background: rgba(14,38,32,0.9);
+  box-shadow: 0 0 20px rgba(46,191,165,0.4);
+}
+.dock-slot.occupied.plant { border-color: #2ecc71; }
+.dock-slot.occupied.animal { border-color: #f39c12; }
+.dock-slot-icon { font-size: 28px; line-height: 1; }
+.dock-slot-label { font-size: 10px; font-weight: 700; color: var(--ink-light); margin-top: 4px; text-align: center; }
+
+/* Failure Breakdown Column (As user requested) */
+.collapse-reason-column {
+  position: absolute; right: 20px; top: 20px; bottom: 20px; width: 340px; z-index: 30;
+  background: linear-gradient(180deg, rgba(32,10,10,0.96) 0%, rgba(16,4,4,0.98) 100%);
+  border: 2px solid #e74c3c; border-radius: 14px; padding: 22px;
+  display: none; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(231,76,60,0.4);
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.collapse-reason-column.active { display: flex; }
+@keyframes slideInRight {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.collapse-col-header {
+  display: flex; align-items: center; gap: 10px; color: #ff6b6b; font-family: var(--font-display); font-size: 20px; font-weight: 700;
+  border-bottom: 1px solid rgba(231,76,60,0.3); padding-bottom: 12px; margin-bottom: 14px;
+}
+.collapse-col-body {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; font-size: 13.5px; line-height: 1.55; color: #f8d7da;
+}
+.collapse-badge {
+  display: inline-block; background: rgba(231,76,60,0.25); color: #ff8787;
+  padding: 4px 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase;
+}
+.collapse-science-rule {
+  background: rgba(0,0,0,0.4); border-left: 3px solid #ff6b6b; padding: 10px 12px; border-radius: 0 6px 6px 0; font-size: 12.5px;
+}
+.btn-reboot-chamber {
+  width: 100%; padding: 13px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: #fff; font-weight: 700; font-size: 14px; border: none; border-radius: 8px; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(231,76,60,0.4); transition: transform 0.15s ease;
+}
+.btn-reboot-chamber:hover { transform: scale(1.02); }
+
+/* Blinding Light and Burst Effects */
+.flash-whiteout-overlay {
+  position: absolute; inset: 0; background: #ffffff; z-index: 100;
+  opacity: 0; pointer-events: none; transition: opacity 0.08s ease-out;
+}
+.flash-whiteout-overlay.flash {
+  opacity: 0.95; transition: opacity 0.05s ease-in;
+}
+.screen-shaking {
+  animation: shakeTremor 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes shakeTremor {
+  10%, 90% { transform: translate3d(-3px, 0, 0); }
+  20%, 80% { transform: translate3d(5px, -3px, 0); }
+  30%, 50%, 70% { transform: translate3d(-6px, 4px, 0); }
+  40%, 60% { transform: translate3d(6px, -4px, 0); }
+}
+
+/* Feature Naming Challenge Modal */
+.naming-challenge-modal {
+  position: absolute; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); padding: 20px;
+}
+.naming-challenge-modal.active { display: flex; }
+.naming-card-box {
+  width: min(520px, 94vw); background: linear-gradient(180deg, rgba(16,42,36,0.96) 0%, rgba(8,22,18,0.98) 100%);
+  border: 2px solid var(--teal-prime); border-radius: 16px; padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 30px rgba(46,191,165,0.4);
+  display: flex; flex-direction: column; gap: 16px; animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes popUp {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.naming-card-header {
+  display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border-line); padding-bottom: 14px;
+}
+.naming-card-header .organelle-icon {
+  font-size: 38px; width: 56px; height: 56px; border-radius: 12px;
+  background: rgba(46,191,165,0.15); display: flex; align-items: center; justify-content: center;
+}
+.naming-card-title { font-family: var(--font-display); font-size: 20px; color: #fff; }
+.naming-question-text { font-size: 15px; color: var(--ink-light); font-weight: 500; }
+.naming-options-grid { display: flex; flex-direction: column; gap: 10px; }
+.naming-option-btn {
+  background: rgba(255,255,255,0.05); border: 1.5px solid var(--border-bright); border-radius: 8px;
+  padding: 12px 16px; color: #fff; font-size: 13.5px; font-weight: 600; text-align: left;
+  cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center; justify-content: space-between;
+}
+.naming-option-btn:hover {
+  background: var(--teal-prime); color: var(--ink-dark); border-color: var(--teal-prime); transform: translateX(4px);
+}
+.naming-option-btn.correct {
+  background: #2ecc71 !important; color: #04120f !important; border-color: #2ecc71 !important;
+}
+.naming-option-btn.wrong {
+  background: #e74c3c !important; color: #fff !important; border-color: #e74c3c !important;
+}
+
+/* Celebration Event: Tree Growth & Vitality */
+.celebration-event-overlay {
+  position: absolute; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center;
+  background: radial-gradient(circle at center, rgba(8,36,24,0.95) 0%, rgba(3,14,10,0.98) 100%);
+  padding: 30px; text-align: center;
+}
+.celebration-event-overlay.active { display: flex; }
+.celebration-stage-box {
+  width: min(720px, 95vw); max-height: 90vh; display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.celebration-tree-canvas {
+  width: 420px; height: 320px; border-radius: 16px;
+  box-shadow: 0 0 50px rgba(46,204,113,0.5);
+  background: radial-gradient(circle at bottom, rgba(46,204,113,0.2) 0%, transparent 70%);
+}
+.celebration-title {
+  font-family: var(--font-display); font-size: 32px; font-weight: 700; color: #fff;
+  text-shadow: 0 0 30px rgba(46,204,113,0.7);
+}
+.celebration-desc {
+  font-size: 15px; color: #d4edda; max-width: 580px; line-height: 1.6;
+}
+.celebration-actions { display: flex; gap: 14px; margin-top: 10px; }
 </style>
 </head>
 
@@ -678,6 +1030,7 @@ html, body {
       <h1 class="game-title">Project Cytocore: The Cell Odyssey</h1>
     </div>
     <div class="nav-actions">
+      <button class="nav-btn highlight" id="btn-nav-hub" style="border-color:var(--teal-prime); color:var(--teal-prime); font-weight:700;">🏠 Modes / Hub</button>
       <button class="nav-btn" id="btn-voice-toggle"><span id="voice-status-icon">🎙️ VOICE: ON</span></button>
       <button class="nav-btn" id="btn-voice-settings">⚙️ Voice Studio</button>
       <button class="nav-btn" id="btn-sound-toggle"><span id="sound-status-icon">SFX: ON</span></button>
@@ -685,6 +1038,166 @@ html, body {
       <button class="nav-btn" id="btn-dossier">Field Dossier</button>
     </div>
   </header>
+
+  <!-- ================= LANDING HUB SCREEN ================= -->
+  <section class="landing-hub-screen" id="landing-hub-screen">
+    <div class="hub-hero-badge">⚡ IB Science · Cell Biology Experience</div>
+    <h1 class="hub-hero-title">Project Cytocore: <span>The Cell Odyssey</span></h1>
+    <p class="hub-hero-sub">Welcome Cadet! Choose how you want to explore the microscopic world of cells. Build your own living cell from scratch in the Arcade, or embark on the full scientific curriculum quest with Dr. Vance, Kai, and Zoe.</p>
+
+    <div class="hub-cards-grid">
+      <!-- Activity Mode Card -->
+      <div class="hub-choice-card activity-card" id="card-launch-activity">
+        <div>
+          <span class="card-top-tag arcade">🎮 Activity Mode · Recommended</span>
+          <h2 class="hub-card-title"><span>🧬</span> Create Your Own Cell</h2>
+          <p class="hub-card-desc">Hands-on, fast-paced biology arcade! Drag and drop organelles into live Plant or Animal cells, test structural stability, master feature quizzes, and trigger the blooming Tree of Life!</p>
+          <ul class="hub-feature-list">
+            <li>✨ Drag &amp; Drop Organelle Bio-Docking</li>
+            <li>🌿 Dynamic Plant Cell Tree Growth Event</li>
+            <li>💥 Hypotonic Burst &amp; Lysis Breakdown Column</li>
+            <li>⚡ Superpower Feature Matching Quizzes</li>
+          </ul>
+        </div>
+        <button class="hub-card-btn primary" id="btn-hub-launch-builder">
+          <span>Launch Cell Builder Arcade</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <!-- Content Mode Card -->
+      <div class="hub-choice-card" id="card-launch-content">
+        <div>
+          <span class="card-top-tag story">📖 Content Mode · Curriculum</span>
+          <h2 class="hub-card-title"><span>🔬</span> Cell Odyssey Quest</h2>
+          <p class="hub-card-desc">Follow Dr. Elena Vance, bio-engineer Kai Cruz, and field specialist Zoe Chen through a complete story-driven expedition across 5 laboratory stations.</p>
+          <ul class="hub-feature-list">
+            <li>🎙️ Fully Voiced Character Dialogue</li>
+            <li>🫀 3D Animal &amp; Plant Cell Dissection</li>
+            <li>🏭 Cellular Factory Tycoon Simulator</li>
+            <li>🃏 Specialised Cells 3D RPG Battle Deck</li>
+            <li>🎓 Official IB Distinction Certificate</li>
+          </ul>
+        </div>
+        <button class="hub-card-btn secondary" id="btn-hub-launch-story">
+          <span>Enter Story Quest</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ACTIVITY: CREATE YOUR OWN CELL ================= -->
+  <section class="activity-screen" id="act-screen-builder">
+    <div class="flash-whiteout-overlay" id="flash-burst-overlay"></div>
+
+    <div class="builder-top-bar">
+      <div class="builder-mode-pills">
+        <button class="builder-pill-btn active" id="btn-build-plant">🌿 Plant Cell Lab</button>
+        <button class="builder-pill-btn" id="btn-build-animal">🐾 Animal Cell Lab</button>
+      </div>
+      <div class="builder-stats-bar">
+        <div class="builder-stat-item">
+          <span>Bio-Energy:</span>
+          <span class="stat-pill energy" id="builder-val-energy">0 PTS</span>
+        </div>
+        <div class="builder-stat-item">
+          <span>Membrane Stability:</span>
+          <span class="stat-pill health" id="builder-val-stability">100%</span>
+        </div>
+        <div class="builder-stat-item">
+          <span>Organelles Docked:</span>
+          <span class="stat-pill" id="builder-val-count" style="background:rgba(255,255,255,0.1); color:#fff;">0 / 6</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="nav-btn" id="btn-test-cell-lysis" title="Test osmotic shock response">💥 Test Osmotic Stability</button>
+        <button class="nav-btn" id="btn-reboot-builder">🔄 Reset Chamber</button>
+        <button class="nav-btn highlight" id="btn-exit-builder-to-hub">🏠 Exit to Hub</button>
+      </div>
+    </div>
+
+    <div class="builder-body-layout">
+      <!-- Left Panel: Organelle Inventory -->
+      <aside class="builder-inventory-panel">
+        <div class="builder-tray-header">
+          <span>ORGANELLE DOCKING TRAY</span>
+          <span id="tray-mode-indicator" style="color:var(--teal-prime);">PLANT SPECIMEN</span>
+        </div>
+        <p style="font-size:12px; color:var(--ink-muted); margin:0;">Drag organelles into the glowing target slots in the cell chamber, or click an organelle and click a slot!</p>
+        <div class="builder-organelle-list" id="builder-tray-list">
+          <!-- Dynamically populated organelle cards -->
+        </div>
+      </aside>
+
+      <!-- Center: Bio-Chamber Stage -->
+      <main class="builder-chamber-stage" id="builder-chamber-stage">
+        <div class="cell-chamber-canvas plant-cell-shape" id="cell-chamber-canvas">
+          <!-- Dynamic fluid particles & target slots -->
+          <div id="chamber-dock-slots" style="position:absolute; inset:0;"></div>
+        </div>
+
+        <!-- Failure Breakdown Column (As requested by user: "burst and then the reason why it burst in column") -->
+        <aside class="collapse-reason-column" id="collapse-reason-column">
+          <div class="collapse-col-header">
+            <span>💥</span>
+            <span>CELL LYSIS ALERT</span>
+          </div>
+          <div class="collapse-col-body">
+            <span class="collapse-badge" id="collapse-badge-type">OSMOTIC COLLAPSE</span>
+            <div style="font-weight:700; color:#fff; font-size:16px;" id="collapse-headline">Membrane Ruptured Under Pressure!</div>
+            <p id="collapse-explanation">Internal hydrostatic pressure exceeded the membrane's tensile threshold. Without a rigid cellulose cell wall to generate inward turgor pressure, the cell underwent uncontrollable swelling and lysis!</p>
+            <div class="collapse-science-rule">
+              <strong style="color:#ff8787; display:block; margin-bottom:4px;">IB BIOLOGY CORE FACT:</strong>
+              <span id="collapse-fact-text">Plant cells survive in hypotonic water because their tough cellulose cell wall withstands high osmotic pressure. Animal cells lack a cell wall and burst (lyse)!</span>
+            </div>
+          </div>
+          <button class="btn-reboot-chamber" id="btn-collapse-reboot">🔄 Reboot Chamber &amp; Try Again</button>
+        </aside>
+      </main>
+    </div>
+
+    <!-- Feature Naming Challenge Modal -->
+    <div class="naming-challenge-modal" id="naming-challenge-modal">
+      <div class="naming-card-box">
+        <div class="naming-card-header">
+          <div class="organelle-icon" id="naming-modal-icon">⚡</div>
+          <div>
+            <div class="naming-card-title" id="naming-modal-name">Mitochondria</div>
+            <div style="font-size:12px; color:var(--amber); font-family:var(--font-mono); font-weight:700;">FEATURE &amp; SUPERPOWER VERIFICATION</div>
+          </div>
+        </div>
+        <div class="naming-question-text" id="naming-modal-question">What primary cellular function does this organelle perform?</div>
+        <div class="naming-options-grid" id="naming-modal-options">
+          <!-- Options populated via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Celebration Event: Tree Growth & Vitality -->
+    <div class="celebration-event-overlay" id="celebration-event-overlay">
+      <div class="celebration-stage-box">
+        <div class="hub-hero-badge" style="background:rgba(81,207,102,0.25); color:#51cf66; border-color:#51cf66;">🌟 CELL EVOLUTION COMPLETE!</div>
+        <h2 class="celebration-title" id="celebration-headline">The Tree of Life Flourishes!</h2>
+        <canvas class="celebration-tree-canvas" id="celebration-tree-canvas" width="420" height="320"></canvas>
+        <p class="celebration-desc" id="celebration-desc">
+          Your synthesized plant cell is fully operational! Chloroplast photosynthesis and central vacuole turgor have channeled vibrant bio-energy into the Ancient Forest, sprouting a towering, bioluminescent Tree of Life!
+        </p>
+        <div class="celebration-actions">
+          <button class="hub-card-btn primary" id="btn-celebration-switch-cell">
+            <span>Build Animal Cell</span>
+            <span>→</span>
+          </button>
+          <button class="hub-card-btn secondary" id="btn-celebration-go-story">
+            <span>Explore Story Mode</span>
+          </button>
+          <button class="hub-card-btn secondary" id="btn-celebration-close">
+            <span>Keep Tweaking Cell</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- VN Dialogue Box & Anime Character Stage -->
   <div class="vn-container" id="vn-box">
@@ -2377,6 +2890,795 @@ function createRoundedPrismGeometry(w, h, d, r=0.6, s=12){
   geo.center();
   return geo;
 }
+
+
+/* =========================================================================
+   0. MISSION LANDING HUB CONTROLLER
+   ========================================================================= */
+const LandingHub = (function(){
+  let isStoryStarted = false;
+
+  function show(){
+    const hubScreen = document.getElementById('landing-hub-screen');
+    if(!hubScreen) return;
+    hubScreen.classList.remove('hidden');
+    document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+    const vnBox = document.getElementById('vn-box');
+    if(vnBox) vnBox.style.display = 'none';
+    const navBadge = document.querySelector('.station-badge');
+    if(navBadge) navBadge.textContent = 'PROJECT CYTOCORE · MISSION HUB';
+    AudioEngine.playClick();
+  }
+
+  function hide(){
+    const hubScreen = document.getElementById('landing-hub-screen');
+    if(!hubScreen) return;
+    hubScreen.classList.add('hidden');
+  }
+
+  function init(){
+    const btnLaunchBuilder = document.getElementById('btn-hub-launch-builder');
+    const btnLaunchStory = document.getElementById('btn-hub-launch-story');
+    const cardLaunchActivity = document.getElementById('card-launch-activity');
+    const cardLaunchContent = document.getElementById('card-launch-content');
+    const btnNavHub = document.getElementById('btn-nav-hub');
+
+    if(btnLaunchBuilder){
+      btnLaunchBuilder.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        hide();
+        ActivityCellBuilder.init();
+      });
+    }
+    if(cardLaunchActivity){
+      cardLaunchActivity.addEventListener('click', ()=>{
+        hide();
+        ActivityCellBuilder.init();
+      });
+    }
+
+    if(btnLaunchStory){
+      btnLaunchStory.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        hide();
+        document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+        const vnBox = document.getElementById('vn-box');
+        if(vnBox) vnBox.style.display = 'flex';
+        if(!isStoryStarted){
+          isStoryStarted = true;
+          VN.start();
+        } else {
+          const navBadge = document.querySelector('.station-badge');
+          if(navBadge) navBadge.textContent = 'IB SCIENCE · UNIT: CELLS';
+        }
+      });
+    }
+    if(cardLaunchContent){
+      cardLaunchContent.addEventListener('click', ()=>{
+        hide();
+        document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+        const vnBox = document.getElementById('vn-box');
+        if(vnBox) vnBox.style.display = 'flex';
+        if(!isStoryStarted){
+          isStoryStarted = true;
+          VN.start();
+        } else {
+          const navBadge = document.querySelector('.station-badge');
+          if(navBadge) navBadge.textContent = 'IB SCIENCE · UNIT: CELLS';
+        }
+      });
+    }
+
+    if(btnNavHub){
+      btnNavHub.addEventListener('click', ()=>{
+        show();
+      });
+    }
+
+    const exitBtn = document.getElementById('btn-exit-builder-to-hub');
+    if(exitBtn){
+      exitBtn.addEventListener('click', ()=>{
+        show();
+      });
+    }
+  }
+
+  return { init, show, hide };
+})();
+
+
+/* =========================================================================
+   0.5 ACTIVITY: CREATE YOUR OWN CELL (DRAG & DROP, FEATURE NAMING & BURST FX)
+   ========================================================================= */
+const ActivityCellBuilder = (function(){
+  let currentMode = 'plant'; // 'plant' | 'animal'
+  let energy = 0;
+  let stability = 100;
+  let dockedOrganelles = new Set();
+  let pendingDock = null;
+  let activeCelebrationAnimId = null;
+
+  const ORGANELLES_DB = {
+    wall: {
+      id: 'wall',
+      name: 'Cellulose Cell Wall',
+      icon: '🌿',
+      type: 'plant',
+      sub: 'Rigid protective cellulose barrier',
+      badge: 'Plant Exclusive',
+      badgeClass: 'plant',
+      question: "What is the vital biological role of the Cellulose Cell Wall?",
+      correct: "Provides tensile rigidity to withstand high turgor pressure and prevent osmotic lysis (bursting).",
+      distractors: [
+        "Synthesizes lipid steroid hormones and breaks down glycogen.",
+        "Selects which RNA messages translate into ribosomes."
+      ],
+      collapseMsg: "Without a Cellulose Cell Wall, water influx caused hydrostatic pressure to exceed membrane tolerance, triggering explosive lysis!"
+    },
+    vacuole: {
+      id: 'vacuole',
+      name: 'Large Central Vacuole',
+      icon: '💧',
+      type: 'plant',
+      sub: 'Massive hydraulic turgor reservoir',
+      badge: 'Plant Exclusive',
+      badgeClass: 'plant',
+      question: "How does the Large Central Vacuole keep non-woody plants standing upright?",
+      correct: "Fills with cell sap to push outward against the cell wall, generating hydrostatic turgor pressure.",
+      distractors: [
+        "Pumps sodium and potassium ions to fire action potentials.",
+        "Replicates mitochondrial DNA during mitosis."
+      ],
+      collapseMsg: "Vacuole failure! Loss of osmotic regulation caused rapid cellular shriveling and plasmolysis."
+    },
+    chloro: {
+      id: 'chloro',
+      name: 'Chloroplasts',
+      icon: '☀️',
+      type: 'plant',
+      sub: 'Solar energy photosynthetic powerhouse',
+      badge: 'Plant Exclusive',
+      badgeClass: 'plant',
+      question: "What biochemical process takes place inside Chloroplasts?",
+      correct: "Uses chlorophyll to capture sunlight and convert carbon dioxide and water into glucose sugars.",
+      distractors: [
+        "Breaks down toxic cellular peroxides into water and oxygen.",
+        "Forms mitotic spindle fibers to segregate chromosomes."
+      ],
+      collapseMsg: "Metabolic blackout! Inability to synthesize carbohydrates starved the cell of vital chemical energy."
+    },
+    nucleus: {
+      id: 'nucleus',
+      name: 'Nucleus & Nucleolus',
+      icon: '🧬',
+      type: 'both',
+      sub: 'Master genetic control command center',
+      badge: 'Plant & Animal',
+      badgeClass: 'both',
+      question: "What is stored and protected within the Eukaryotic Nucleus?",
+      correct: "Cellular DNA chromosomes that encode all protein synthesis and genetic instructions.",
+      distractors: [
+        "Digestive proteases that dissolve engulfed pathogen bacteria.",
+        "ATP synthase pumps that phosphorylate ADP into ATP."
+      ],
+      collapseMsg: "Genetic breakdown! Without nuclear instructions, cellular enzymes ceased production."
+    },
+    mito: {
+      id: 'mito',
+      name: 'Mitochondria',
+      icon: '⚡',
+      type: 'both',
+      sub: 'ATP cellular respiration power plant',
+      badge: 'Plant & Animal',
+      badgeClass: 'both',
+      question: "Why are Mitochondria known as the 'Powerhouses of the Cell'?",
+      correct: "They perform aerobic cellular respiration to generate ATP (adenosine triphosphate) energy packets.",
+      distractors: [
+        "They synthesize cellulose fibrils to construct the outer wall.",
+        "They package secretory glycoproteins into vesicles."
+      ],
+      collapseMsg: "Energy blackout! Without ATP synthesis, vital active transport pumps halted instantly."
+    },
+    er_ribo: {
+      id: 'er_ribo',
+      name: 'ER & Ribosomes',
+      icon: '🧪',
+      type: 'both',
+      sub: 'Protein synthesis and folding factories',
+      badge: 'Plant & Animal',
+      badgeClass: 'both',
+      question: "What critical cellular product do Ribosomes assemble?",
+      correct: "They translate genetic mRNA code into peptide protein chains for enzymes and structural matrices.",
+      distractors: [
+        "They filter water molecules across the tonoplast membrane.",
+        "They absorb sunlight wavelengths to produce starch."
+      ],
+      collapseMsg: "Peptide collapse! Complete depletion of structural enzymes caused membrane failure."
+    },
+    membrane: {
+      id: 'membrane',
+      name: 'Plasma Membrane',
+      icon: '🛡️',
+      type: 'animal',
+      sub: 'Flexible semi-permeable lipid bilayer',
+      badge: 'Animal & Plant',
+      badgeClass: 'animal',
+      question: "What is the primary function of the semi-permeable Plasma Membrane?",
+      correct: "Controls the selective exchange of nutrients, ions, and wastes between cytosol and external fluid.",
+      distractors: [
+        "Stores chromosomes and transcribes ribosomal RNA.",
+        "Provides rigid mechanical resistance to prevent hydrostatic swelling."
+      ],
+      collapseMsg: "Barrier breach! Unregulated ionic influx disrupted membrane potential."
+    },
+    centri: {
+      id: 'centri',
+      name: 'Centrioles & Centrosome',
+      icon: '🧭',
+      type: 'animal',
+      sub: 'Microtubule mitotic spindle organizers',
+      badge: 'Animal Exclusive',
+      badgeClass: 'animal',
+      question: "When are Centrioles crucially mobilized in animal cells?",
+      correct: "During mitosis cell division to anchor and pull sister chromatid chromosomes apart.",
+      distractors: [
+        "During darkness to oxidize glucose molecules into lactic acid.",
+        "During drought to store hydrostatic sap."
+      ],
+      collapseMsg: "Mitotic arrest! Chromosome separation apparatus failed."
+    },
+    lyso: {
+      id: 'lyso',
+      name: 'Lysosomes',
+      icon: '♻️',
+      type: 'animal',
+      sub: 'Hydrolytic digestive recycling center',
+      badge: 'Animal Exclusive',
+      badgeClass: 'animal',
+      question: "What enzymes are housed inside Lysosomes?",
+      correct: "Acid hydrolases that break down damaged organelles, macromolecules, and cellular debris.",
+      distractors: [
+        "Photosynthetic chlorophyll pigments that emit fluorescence.",
+        "Cellulose synthase enzymes that weave cell walls."
+      ],
+      collapseMsg: "Toxic accumulation! Undigested waste compounds poisoned the cytoplasm."
+    }
+  };
+
+  const SLOTS_CONFIG = {
+    plant: [
+      { id: 'slot_wall', targetOrganelle: 'wall', label: 'Cellulose Wall', icon: '🌿', x: 50, y: 12 },
+      { id: 'slot_vacuole', targetOrganelle: 'vacuole', label: 'Central Vacuole', icon: '💧', x: 50, y: 50 },
+      { id: 'slot_chloro', targetOrganelle: 'chloro', label: 'Chloroplast', icon: '☀️', x: 25, y: 72 },
+      { id: 'slot_nucleus', targetOrganelle: 'nucleus', label: 'Nucleus', icon: '🧬', x: 24, y: 30 },
+      { id: 'slot_mito', targetOrganelle: 'mito', label: 'Mitochondria', icon: '⚡', x: 75, y: 32 },
+      { id: 'slot_er', targetOrganelle: 'er_ribo', label: 'ER & Ribosomes', icon: '🧪', x: 74, y: 72 }
+    ],
+    animal: [
+      { id: 'slot_membrane', targetOrganelle: 'membrane', label: 'Plasma Membrane', icon: '🛡️', x: 50, y: 14 },
+      { id: 'slot_nucleus', targetOrganelle: 'nucleus', label: 'Nucleus', icon: '🧬', x: 50, y: 50 },
+      { id: 'slot_mito', targetOrganelle: 'mito', label: 'Mitochondria', icon: '⚡', x: 26, y: 35 },
+      { id: 'slot_centri', targetOrganelle: 'centri', label: 'Centrosome', icon: '🧭', x: 74, y: 35 },
+      { id: 'slot_lyso', targetOrganelle: 'lyso', label: 'Lysosome', icon: '♻️', x: 28, y: 70 },
+      { id: 'slot_er', targetOrganelle: 'er_ribo', label: 'ER & Ribosomes', icon: '🧪', x: 72, y: 70 }
+    ]
+  };
+
+  function updateStatsUI(){
+    const eEl = document.getElementById('builder-val-energy');
+    const sEl = document.getElementById('builder-val-stability');
+    const cEl = document.getElementById('builder-val-count');
+    if(eEl) eEl.textContent = `${energy} PTS`;
+    if(sEl){
+      sEl.textContent = `${stability}%`;
+      sEl.className = stability > 60 ? 'stat-pill health' : (stability > 30 ? 'stat-pill energy' : 'stat-pill danger');
+    }
+    const totalReq = SLOTS_CONFIG[currentMode].length;
+    if(cEl) cEl.textContent = `${dockedOrganelles.size} / ${totalReq}`;
+  }
+
+  function renderTray(){
+    const container = document.getElementById('builder-tray-list') || document.getElementById('builder-organelle-list');
+    if(!container) return;
+    container.innerHTML = '';
+
+    const indicator = document.getElementById('tray-mode-indicator');
+    if(indicator){
+      indicator.textContent = currentMode === 'plant' ? 'PLANT SPECIMEN' : 'ANIMAL SPECIMEN';
+      indicator.style.color = currentMode === 'plant' ? 'var(--emerald)' : 'var(--amber)';
+    }
+
+    const organelleKeys = Object.keys(ORGANELLES_DB);
+    organelleKeys.forEach(k=>{
+      const org = ORGANELLES_DB[k];
+      const isDocked = dockedOrganelles.has(k);
+
+      const card = document.createElement('div');
+      card.className = `organelle-drag-card ${isDocked ? 'docked' : ''}`;
+      card.draggable = !isDocked;
+      card.dataset.id = k;
+
+      const bgCol = org.type === 'plant' ? 'rgba(46,204,113,0.18)' : (org.type === 'animal' ? 'rgba(230,161,59,0.18)' : 'rgba(56,217,169,0.18)');
+      card.innerHTML = `
+        <div class="organelle-icon-bubble" style="background:${bgCol};">${org.icon}</div>
+        <div class="organelle-info">
+          <div class="organelle-name">${org.name}</div>
+          <div class="organelle-sub">${org.sub}</div>
+          <span class="organelle-badge-tag ${org.badgeClass}">${org.badge}</span>
+        </div>
+      `;
+
+      card.addEventListener('dragstart', (e)=>{
+        e.dataTransfer.setData('text/plain', k);
+      });
+
+      card.addEventListener('click', ()=>{
+        if(isDocked) return;
+        AudioEngine.playClick();
+        document.querySelectorAll('.organelle-drag-card').forEach(c=>c.style.borderColor='');
+        card.style.borderColor = 'var(--amber)';
+        pendingDock = k;
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  function renderChamber(){
+    const canvas = document.getElementById('cell-chamber-canvas');
+    const slotsHost = document.getElementById('chamber-dock-slots');
+    if(!canvas || !slotsHost) return;
+
+    canvas.className = `cell-chamber-canvas ${currentMode==='plant'?'plant-cell-shape':'animal-cell-shape'}`;
+    slotsHost.innerHTML = '';
+
+    const slots = SLOTS_CONFIG[currentMode];
+    slots.forEach(s=>{
+      const isOccupied = dockedOrganelles.has(s.targetOrganelle);
+      const slotEl = document.createElement('div');
+      slotEl.className = `dock-slot ${isOccupied ? 'occupied ' + currentMode : ''}`;
+      slotEl.style.left = `${s.x}%`;
+      slotEl.style.top = `${s.y}%`;
+      slotEl.dataset.slotId = s.id;
+      slotEl.dataset.target = s.targetOrganelle;
+
+      const org = ORGANELLES_DB[s.targetOrganelle];
+      if(isOccupied){
+        slotEl.innerHTML = `
+          <div class="dock-slot-icon">${org.icon}</div>
+          <div class="dock-slot-label">${org.name.split(' ')[0]}</div>
+        `;
+      } else {
+        slotEl.innerHTML = `
+          <div class="dock-slot-icon" style="opacity:0.4;">${s.icon}</div>
+          <div class="dock-slot-label">${s.label}</div>
+        `;
+      }
+
+      slotEl.addEventListener('dragover', (e)=>{
+        e.preventDefault();
+        slotEl.classList.add('drag-over');
+      });
+      slotEl.addEventListener('dragleave', ()=>{
+        slotEl.classList.remove('drag-over');
+      });
+      slotEl.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        slotEl.classList.remove('drag-over');
+        const droppedId = e.dataTransfer.getData('text/plain');
+        attemptDock(droppedId, s.targetOrganelle);
+      });
+
+      slotEl.addEventListener('click', ()=>{
+        if(pendingDock){
+          attemptDock(pendingDock, s.targetOrganelle);
+          pendingDock = null;
+        }
+      });
+
+      slotsHost.appendChild(slotEl);
+    });
+  }
+
+  function attemptDock(organelleId, targetSlotOrganelle){
+    const org = ORGANELLES_DB[organelleId];
+    if(!org) return;
+
+    if(currentMode === 'plant' && org.type === 'animal'){
+      AudioEngine.playWarning();
+      triggerCellCollapse({
+        title: "CRITICAL INCOMPATIBILITY BURST",
+        badge: "CYTOSKELETAL SHOCK",
+        headline: "Animal Centrosome Injected into Plant Cell!",
+        explanation: `Plant cells lack centrioles and rely on distinct microtubule organizing centers. Injecting foreign animal enzymes destabilized the rigid cell matrix!`,
+        fact: "Plant cells do not have centrioles or lysosomes; their cell plate and large vacuole fulfill these functions natively."
+      });
+      return;
+    }
+    if(currentMode === 'animal' && (org.type === 'plant' || organelleId === 'wall' || organelleId === 'chloro')){
+      AudioEngine.playWarning();
+      triggerCellCollapse({
+        title: "OSMOTIC LYSIS & CRYSTAL BURST",
+        badge: "MEMBRANE PUNCTURE",
+        headline: "Plant Cell Wall / Chloroplast Injected into Animal Cell!",
+        explanation: `Animal cells require flexible, contractile plasma membranes for tissue movement. Crystalline cellulose and thylakoids pierced the delicate membrane, triggering instant burst lysis!`,
+        fact: "Animal cells have no rigid cell walls and no chloroplasts. They rely exclusively on extracellular isotonic fluid and mitochondria."
+      });
+      return;
+    }
+
+    if(organelleId !== targetSlotOrganelle){
+      AudioEngine.playWarning();
+      stability = Math.max(10, stability - 15);
+      updateStatsUI();
+      alert(`Receptor mismatch! ${org.name} does not dock at this receptor site. Find its matching dock in the chamber.`);
+      return;
+    }
+
+    openNamingChallenge(organelleId);
+  }
+
+  function openNamingChallenge(organelleId){
+    const org = ORGANELLES_DB[organelleId];
+    const modal = document.getElementById('naming-challenge-modal');
+    if(!org || !modal) return;
+
+    document.getElementById('naming-modal-icon').textContent = org.icon;
+    document.getElementById('naming-modal-name').textContent = org.name;
+    document.getElementById('naming-modal-question').textContent = org.question;
+
+    const optionsHost = document.getElementById('naming-modal-options');
+    optionsHost.innerHTML = '';
+
+    const options = [
+      { text: org.correct, isCorrect: true },
+      { text: org.distractors[0], isCorrect: false },
+      { text: org.distractors[1], isCorrect: false }
+    ].sort(()=>Math.random()-0.5);
+
+    options.forEach(opt=>{
+      const btn = document.createElement('button');
+      btn.className = 'naming-option-btn';
+      btn.innerHTML = `<span>${opt.text}</span><span>→</span>`;
+
+      btn.addEventListener('click', ()=>{
+        if(opt.isCorrect){
+          btn.classList.add('correct');
+          AudioEngine.playSuccess();
+          energy += 250;
+          dockedOrganelles.add(organelleId);
+          setTimeout(()=>{
+            modal.classList.remove('active');
+            renderTray();
+            renderChamber();
+            updateStatsUI();
+            checkCompletion();
+          }, 500);
+        } else {
+          btn.classList.add('wrong');
+          btn.disabled = true;
+          AudioEngine.playWarning();
+          stability = Math.max(0, stability - 25);
+          updateStatsUI();
+          if(stability <= 0){
+            setTimeout(()=>{
+              modal.classList.remove('active');
+              triggerCellCollapse({
+                title: "METABOLIC INSTABILITY COLLAPSE",
+                badge: "CRITICAL DEPLETION",
+                headline: "Cell Stability Reached 0%!",
+                explanation: org.collapseMsg,
+                fact: "Every organelle performs a specialized, non-negotiable physiological job to maintain cellular homeostasis."
+              });
+            }, 600);
+          }
+        }
+      });
+
+      optionsHost.appendChild(btn);
+    });
+
+    modal.classList.add('active');
+  }
+
+  // Dramatic Burst / Collapse Function (As user requested: "burst and then the reason why it burst in column")
+  function triggerCellCollapse(info){
+    const canvas = document.getElementById('cell-chamber-canvas');
+    const flashOverlay = document.getElementById('flash-burst-overlay');
+    const col = document.getElementById('collapse-reason-column');
+
+    // 1. Synthesize dramatic explosion SFX
+    try {
+      AudioEngine.playWarning();
+    } catch(e){}
+
+    // 2. Intense blinding light flash
+    if(flashOverlay){
+      flashOverlay.classList.add('flash');
+      setTimeout(()=>{ flashOverlay.classList.remove('flash'); }, 240);
+    }
+
+    // 3. Screen shaking and burst tremor
+    if(canvas){
+      canvas.classList.add('screen-shaking');
+      canvas.style.borderColor = '#e74c3c';
+      canvas.style.boxShadow = '0 0 60px rgba(231,76,60,0.8), inset 0 0 40px rgba(231,76,60,0.6)';
+      setTimeout(()=>{ canvas.classList.remove('screen-shaking'); }, 600);
+    }
+
+    // 4. Slide in the Failure Breakdown Column right next to the cell
+    if(col){
+      document.getElementById('collapse-badge-type').textContent = info.badge || 'OSMOTIC LYSIS';
+      document.getElementById('collapse-headline').textContent = info.headline || 'Membrane Ruptured Under Stress!';
+      document.getElementById('collapse-explanation').textContent = info.explanation;
+      document.getElementById('collapse-fact-text').textContent = info.fact;
+      col.classList.add('active');
+    }
+
+    VoiceEngine.speak("Warning! Critical cellular collapse detected. Review the diagnosis column to understand why the cell burst.", 'kai');
+  }
+
+  function rebootChamber(){
+    stability = 100;
+    dockedOrganelles.clear();
+    pendingDock = null;
+    const col = document.getElementById('collapse-reason-column');
+    if(col) col.classList.remove('active');
+    const canvas = document.getElementById('cell-chamber-canvas');
+    if(canvas){
+      canvas.style.borderColor = '';
+      canvas.style.boxShadow = '';
+    }
+    renderTray();
+    renderChamber();
+    updateStatsUI();
+    AudioEngine.playSuccess();
+  }
+
+  function checkCompletion(){
+    const required = SLOTS_CONFIG[currentMode];
+    if(dockedOrganelles.size >= required.length){
+      setTimeout(()=>{
+        triggerCelebrationEvent();
+      }, 700);
+    }
+  }
+
+  // Dramatic Celebration: Dynamic Tree Growth for Plant / Vitality Pulse for Animal
+  function triggerCelebrationEvent(){
+    const overlay = document.getElementById('celebration-event-overlay');
+    const headline = document.getElementById('celebration-headline');
+    const desc = document.getElementById('celebration-desc');
+    const cCanvas = document.getElementById('celebration-tree-canvas');
+    if(!overlay || !cCanvas) return;
+
+    AudioEngine.playSuccess();
+    overlay.classList.add('active');
+
+    if(currentMode === 'plant'){
+      headline.textContent = '🌿 The Tree of Life Flourishes!';
+      desc.textContent = "Your synthesized Plant Cell is fully alive! Active chloroplast photosynthesis and vacuole turgor have infused radiant bio-energy into the Ancient Forest, sprouting this towering, blooming Tree of Life!";
+      VoiceEngine.speak("Magnificent achievement, Cadet! Your plant cell is fully synthesized and the Tree of Life is flourishing!", 'zoe');
+      animateTreeGrowth(cCanvas);
+    } else {
+      headline.textContent = '🐾 Living Animal Vitality Unlocked!';
+      desc.textContent = "Your synthesized Animal Cell is fully alive! Active mitochondrial ATP and membrane reflexes have ignited vital bio-signals across the organism!";
+      VoiceEngine.speak("Incredible work, bio-engineer! The animal cell is metabolically firing on all cylinders!", 'kai');
+      animateAnimalVitality(cCanvas);
+    }
+  }
+
+  function animateTreeGrowth(canvas){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    let progress = 0;
+
+    if(activeCelebrationAnimId) cancelAnimationFrame(activeCelebrationAnimId);
+
+    function drawBranch(startX, startY, length, angle, depth, maxDepth, prog){
+      if(depth > maxDepth || length < 2) return;
+
+      const currentLen = length * Math.min(1, Math.max(0, (prog - depth*0.15) * 2.5));
+      if(currentLen <= 0) return;
+
+      const endX = startX + currentLen * Math.sin(angle);
+      const endY = startY - currentLen * Math.cos(angle);
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.lineWidth = Math.max(1.5, (maxDepth - depth) * 2.2);
+      ctx.strokeStyle = depth < 2 ? '#8d5524' : '#5c3a21';
+      ctx.stroke();
+
+      if(depth >= maxDepth - 1 && prog > 0.5){
+        const leafProg = Math.min(1, (prog - 0.5) * 2.0);
+        ctx.save();
+        ctx.fillStyle = depth % 2 === 0 ? `rgba(46,204,113,${0.85*leafProg})` : `rgba(81,207,102,${0.9*leafProg})`;
+        ctx.beginPath();
+        ctx.arc(endX, endY, 5.5 * leafProg, 0, Math.PI * 2);
+        ctx.fill();
+
+        if((depth + Math.round(startX)) % 3 === 0){
+          ctx.fillStyle = `rgba(255,107,129,${0.9*leafProg})`;
+          ctx.beginPath();
+          ctx.arc(endX + 3, endY - 2, 3.5 * leafProg, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      drawBranch(endX, endY, length * 0.76, angle - 0.42, depth + 1, maxDepth, prog);
+      drawBranch(endX, endY, length * 0.74, angle + 0.38, depth + 1, maxDepth, prog);
+    }
+
+    function loop(){
+      progress += 0.012;
+      ctx.clearRect(0, 0, w, h);
+
+      const grad = ctx.createRadialGradient(w/2, h - 30, 20, w/2, h/2, w/2);
+      grad.addColorStop(0, 'rgba(46,204,113,0.3)');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#2d5a27';
+      ctx.beginPath();
+      ctx.ellipse(w/2, h - 14, 110, 24, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      drawBranch(w/2, h - 20, 68, 0, 0, 6, Math.min(1, progress));
+
+      for(let p=0; p<16; p++){
+        const px = (w/2 + Math.sin(progress*2 + p)*160 + w) % w;
+        const py = (h - 50 - (progress*60 + p*22) % (h - 60));
+        ctx.fillStyle = 'rgba(255,230,109,0.75)';
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      if(progress < 1.4){
+        activeCelebrationAnimId = requestAnimationFrame(loop);
+      }
+    }
+    loop();
+  }
+
+  function animateAnimalVitality(canvas){
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    let t = 0;
+
+    if(activeCelebrationAnimId) cancelAnimationFrame(activeCelebrationAnimId);
+
+    function loop(){
+      t += 0.03;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#f39c12';
+      ctx.lineWidth = 3;
+      for(let x=0; x<w; x++){
+        let y = h/2;
+        const pulsePos = (x + t*120) % 200;
+        if(pulsePos > 80 && pulsePos < 120){
+          y += Math.sin((pulsePos - 80)*Math.PI / 20) * 45;
+        }
+        if(x===0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      for(let r=1; r<=3; r++){
+        ctx.beginPath();
+        ctx.arc(w/2, h/2, 35 * r + Math.sin(t*3 + r)*8, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(230,161,59,${0.5 / r})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      if(t < 6){
+        activeCelebrationAnimId = requestAnimationFrame(loop);
+      }
+    }
+    loop();
+  }
+
+  function init(){
+    document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
+    const bScreen = document.getElementById('act-screen-builder');
+    if(bScreen) bScreen.classList.add('active');
+
+    const vnBox = document.getElementById('vn-box');
+    if(vnBox) vnBox.style.display = 'none';
+
+    const navBadge = document.querySelector('.station-badge');
+    if(navBadge) navBadge.textContent = 'ACTIVITY · CREATE YOUR OWN CELL';
+
+    const btnPlant = document.getElementById('btn-build-plant');
+    const btnAnimal = document.getElementById('btn-build-animal');
+    if(btnPlant && btnAnimal){
+      btnPlant.onclick = ()=>{
+        currentMode = 'plant';
+        btnPlant.className = 'builder-pill-btn active';
+        btnAnimal.className = 'builder-pill-btn';
+        rebootChamber();
+      };
+      btnAnimal.onclick = ()=>{
+        currentMode = 'animal';
+        btnAnimal.className = 'builder-pill-btn active animal';
+        btnPlant.className = 'builder-pill-btn';
+        rebootChamber();
+      };
+    }
+
+    const btnLysisTest = document.getElementById('btn-test-cell-lysis');
+    if(btnLysisTest){
+      btnLysisTest.onclick = ()=>{
+        if(currentMode === 'plant' && !dockedOrganelles.has('wall')){
+          triggerCellCollapse({
+            title: "HYPOTONIC OSMOTIC LYSIS",
+            badge: "TENSILE OVERLOAD",
+            headline: "Distilled Water Burst! Missing Cellulose Wall",
+            explanation: "In a hypotonic solution, water constantly rushes inward by osmosis. Without a rigid Cellulose Cell Wall to generate resisting turgor pressure, the naked protoplast absorbed water until its plasma membrane ruptured and burst!",
+            fact: "Plant cells without walls are termed protoplasts and behave like fragile animal cells; only the cellulose wall allows them to remain firm and turgid."
+          });
+        } else if(currentMode === 'animal'){
+          triggerCellCollapse({
+            title: "ANIMAL CELL LYSIS IN PURE WATER",
+            badge: "OSMOTIC RUPTURE",
+            headline: "Animal Cell Burst in Hypotonic Solution!",
+            explanation: "Animal cells possess only a thin, flexible plasma membrane. When immersed in hypotonic liquid without isotonic blood serum, osmotic swelling rapidly causes total cell lysis (hemolysis in red blood cells)!",
+            fact: "Animal cells burst (lyse) in hypotonic environments because they lack a rigid cellulose cell wall to generate inward pressure."
+          });
+        } else {
+          AudioEngine.playSuccess();
+          alert("✓ Structural Test Passed! The Cellulose Cell Wall successfully generated counter-turgor pressure, keeping the plant cell firm and intact without bursting!");
+        }
+      };
+    }
+
+    const btnReboot = document.getElementById('btn-reboot-builder');
+    if(btnReboot) btnReboot.onclick = rebootChamber;
+
+    const btnColReboot = document.getElementById('btn-collapse-reboot');
+    if(btnColReboot) btnColReboot.onclick = rebootChamber;
+
+    const btnCelSwitch = document.getElementById('btn-celebration-switch-cell');
+    if(btnCelSwitch){
+      btnCelSwitch.onclick = ()=>{
+        document.getElementById('celebration-event-overlay').classList.remove('active');
+        if(currentMode === 'plant'){
+          btnAnimal.click();
+        } else {
+          btnPlant.click();
+        }
+      };
+    }
+
+    const btnCelStory = document.getElementById('btn-celebration-go-story');
+    if(btnCelStory){
+      btnCelStory.onclick = ()=>{
+        document.getElementById('celebration-event-overlay').classList.remove('active');
+        bScreen.classList.remove('active');
+        VN.start();
+      };
+    }
+
+    const btnCelClose = document.getElementById('btn-celebration-close');
+    if(btnCelClose){
+      btnCelClose.onclick = ()=>{
+        document.getElementById('celebration-event-overlay').classList.remove('active');
+      };
+    }
+
+    rebootChamber();
+    VoiceEngine.speak("Welcome to the Cell Builder Bio-Chamber! Drag organelles into the docking bays, match their superpower features, and beware of osmotic lysis!", 'kai');
+  }
+
+  return { init, rebootChamber };
+})();
 
 
 /* =========================================================================
@@ -4501,9 +5803,10 @@ function unlockAudioContext(){
   window.removeEventListener('keydown', unlockAudioContext);
 }
 window.addEventListener('pointerdown', unlockAudioContext, { once: true });
-window.addEventListener('keydown', unlockAudioContext, { once: true });
-
-window.addEventListener('DOMContentLoaded', ()=>{ VN.start(); });
+window.addEventListener('DOMContentLoaded', ()=>{ 
+  LandingHub.init();
+  LandingHub.show();
+});
 </script>
 </body>
 </html>
