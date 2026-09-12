@@ -762,16 +762,16 @@ html, body {
 
 /* ================= CELL BUILDER SCREEN STYLES ================= */
 #act-screen-builder {
-  position: absolute; inset: 0; z-index: 20; display: none;
+  position: absolute; top: 60px; left: 0; right: 0; bottom: 0; z-index: 20; display: none;
   background: radial-gradient(circle at center, rgba(10,28,24,0.95) 0%, rgba(4,12,10,0.98) 100%);
   flex-direction: column; overflow: hidden;
 }
 #act-screen-builder.active { display: flex; }
 
 .builder-top-bar {
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  padding: 12px 24px; background: rgba(7,18,16,0.85); border-bottom: 1px solid var(--border-line);
-  z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 20px; background: rgba(7,18,16,0.9); border-bottom: 1px solid var(--border-line);
+  z-index: 10; flex-shrink: 0;
 }
 .builder-mode-pills { display: flex; gap: 8px; }
 .builder-pill-btn {
@@ -833,10 +833,12 @@ html, body {
   opacity: 0.35; pointer-events: none; border-color: rgba(255,255,255,0.1);
 }
 .organelle-icon-bubble {
-  width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
-  justify-content: center; font-size: 22px; flex-shrink: 0;
+  width: 58px; height: 48px; border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; padding: 4px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
 }
+.organelle-icon-bubble svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
 .organelle-info { flex: 1; min-width: 0; }
 .organelle-name { font-size: 13.5px; font-weight: 700; color: #fff; margin-bottom: 3px; }
 .organelle-sub { font-size: 11px; color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -848,50 +850,97 @@ html, body {
 .organelle-badge-tag.animal { background: rgba(230,161,59,0.15); color: var(--amber); border: 1px solid var(--amber); }
 .organelle-badge-tag.both { background: rgba(56,217,169,0.15); color: #38d9a9; border: 1px solid #38d9a9; }
 
+/* Real-Time Cell Functioning Reward Bar */
+.cell-functioning-bar {
+  display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 16px; background: rgba(5,14,12,0.85); border-bottom: 1px solid var(--border-line); z-index: 8;
+}
+.func-chip {
+  display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--font-mono);
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  padding: 4px 10px; border-radius: 16px; color: var(--ink-muted); transition: all 0.3s ease;
+}
+.func-chip strong { color: #fff; font-weight: 700; }
+.func-chip.active {
+  background: rgba(46,191,165,0.15); border-color: var(--teal-prime); color: #fff;
+  box-shadow: 0 0 12px rgba(46,191,165,0.3);
+}
+.func-chip.active.gold {
+  background: rgba(241,196,15,0.15); border-color: #f1c40f; color: #fff;
+  box-shadow: 0 0 12px rgba(241,196,15,0.3);
+}
+.func-chip.active.green {
+  background: rgba(46,204,113,0.15); border-color: #2ecc71; color: #fff;
+  box-shadow: 0 0 12px rgba(46,204,113,0.3);
+}
+.func-chip.active.blue {
+  background: rgba(56,152,199,0.2); border-color: #3898c7; color: #fff;
+  box-shadow: 0 0 12px rgba(56,152,199,0.3);
+}
+.func-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ink-muted); transition: all 0.3s ease;
+}
+.func-chip.active .func-dot {
+  background: currentColor; box-shadow: 0 0 6px currentColor;
+}
+
 /* Bio-Chamber Stage */
 .builder-chamber-stage {
   position: relative; width: 100%; height: 100%; display: flex; align-items: center;
   justify-content: center; overflow: hidden; padding: 20px;
 }
 .cell-chamber-canvas {
-  position: relative; width: min(680px, 90%); aspect-ratio: 1.15;
-  background: radial-gradient(ellipse at center, rgba(20,54,46,0.6) 0%, rgba(8,24,20,0.85) 100%);
-  border: 4px solid var(--teal-prime); border-radius: 60px;
-  box-shadow: 0 0 40px rgba(46,191,165,0.25), inset 0 0 50px rgba(0,0,0,0.6);
+  position: relative; width: min(680px, 92%); aspect-ratio: 1.15;
   transition: all 0.4s ease; display: flex; align-items: center; justify-content: center;
 }
 .cell-chamber-canvas.plant-cell-shape {
-  border-radius: 40px; border: 6px solid #2ecc71;
-  box-shadow: 0 0 50px rgba(46,204,113,0.3), inset 0 0 0 6px rgba(46,204,113,0.2);
+  border-radius: 44px;
+  border: 12px solid #a07449; /* Cellulose wall outer */
+  box-shadow: 0 0 0 5px #5a7d51, 0 16px 50px rgba(0,0,0,0.7), inset 0 0 0 5px #5a7d51;
+  background: radial-gradient(ellipse at center, rgba(38,74,56,0.7) 0%, rgba(14,35,27,0.94) 100%);
 }
 .cell-chamber-canvas.animal-cell-shape {
-  border-radius: 50%; border: 4px solid #f39c12;
-  box-shadow: 0 0 50px rgba(243,156,18,0.3);
+  border-radius: 50%;
+  border: 8px solid #c97a5f; /* Plasma membrane outer */
+  box-shadow: 0 0 0 4px #df9b84, 0 16px 50px rgba(0,0,0,0.7), inset 0 0 0 4px #df9b84;
+  background: radial-gradient(ellipse at center, rgba(68,40,32,0.65) 0%, rgba(24,14,10,0.94) 100%);
 }
 
 /* Docking Bays */
 .dock-slot {
   position: absolute; transform: translate(-50%, -50%);
-  width: 82px; height: 82px; border-radius: 50%;
-  border: 2px dashed rgba(255,255,255,0.3); background: rgba(0,0,0,0.4);
+  border: 2px dashed rgba(255,255,255,0.35); background: rgba(0,0,0,0.45);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; transition: all 0.25s ease; z-index: 4;
 }
 .dock-slot:hover {
-  border-color: var(--teal-prime); background: rgba(46,191,165,0.15); transform: translate(-50%, -50%) scale(1.08);
+  border-color: var(--teal-prime); background: rgba(46,191,165,0.15); transform: translate(-50%, -50%) scale(1.06);
 }
 .dock-slot.drag-over {
-  border-color: #51cf66; background: rgba(81,207,102,0.3); transform: translate(-50%, -50%) scale(1.15);
+  border-color: #51cf66; background: rgba(81,207,102,0.3); transform: translate(-50%, -50%) scale(1.12);
   box-shadow: 0 0 25px rgba(81,207,102,0.6);
 }
 .dock-slot.occupied {
-  border-style: solid; border-color: var(--teal-prime); background: rgba(14,38,32,0.9);
-  box-shadow: 0 0 20px rgba(46,191,165,0.4);
+  border-style: solid; border-color: rgba(255,255,255,0.25); background: transparent;
+  box-shadow: none;
 }
-.dock-slot.occupied.plant { border-color: #2ecc71; }
-.dock-slot.occupied.animal { border-color: #f39c12; }
-.dock-slot-icon { font-size: 28px; line-height: 1; }
-.dock-slot-label { font-size: 10px; font-weight: 700; color: var(--ink-light); margin-top: 4px; text-align: center; }
+.dock-slot-svg {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 2px;
+}
+.dock-slot-svg svg {
+  width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+.dock-slot.occupied .dock-slot-svg svg {
+  animation: pulseOrganelleLiving 3.2s infinite ease-in-out;
+}
+@keyframes pulseOrganelleLiving {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
+  50% { transform: scale(1.04); filter: drop-shadow(0 6px 16px rgba(46,191,165,0.4)); }
+}
+.dock-slot-label {
+  position: absolute; bottom: -18px; font-size: 10.5px; font-weight: 700; color: var(--ink-light);
+  white-space: nowrap; text-shadow: 0 1px 4px #000; pointer-events: none;
+}
 
 /* Failure Breakdown Column (As user requested) */
 .collapse-reason-column {
@@ -1115,6 +1164,16 @@ html, body {
         <button class="nav-btn" id="btn-reboot-builder">🔄 Reset Chamber</button>
         <button class="nav-btn highlight" id="btn-exit-builder-to-hub">🏠 Exit to Hub</button>
       </div>
+    </div>
+
+    <!-- Real-Time Cell Functioning Telemetry & Reward Bar -->
+    <div class="cell-functioning-bar" id="cell-functioning-bar">
+      <span style="font-size:11px; font-weight:700; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.5px; margin-right:4px;">⚡ Cellular Telemetry:</span>
+      <div class="func-chip" id="chip-atp"><span class="func-dot"></span><strong>ATP Engine:</strong> <span id="val-chip-atp">Offline</span></div>
+      <div class="func-chip" id="chip-photo"><span class="func-dot"></span><strong>Photosynthesis:</strong> <span id="val-chip-photo">Dormant</span></div>
+      <div class="func-chip" id="chip-turgor"><span class="func-dot"></span><strong>Turgor Pressure:</strong> <span id="val-chip-turgor">0.0 MPa</span></div>
+      <div class="func-chip" id="chip-dna"><span class="func-dot"></span><strong>Master Genome:</strong> <span id="val-chip-dna">Locked</span></div>
+      <div class="func-chip" id="chip-wall"><span class="func-dot"></span><strong>Cellular Rigidity:</strong> <span id="val-chip-wall">Hypotonic Risk</span></div>
     </div>
 
     <div class="builder-body-layout">
@@ -2998,148 +3057,313 @@ const ActivityCellBuilder = (function(){
   let pendingDock = null;
   let activeCelebrationAnimId = null;
 
+  // Scientifically accurate vector SVG biological components (matching Cell Explorer aesthetic)
+  function getOrganelleSVG(id){
+    switch(id){
+      case 'wall':
+        return `<svg viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="94" height="54" rx="10" stroke="#8d5b32" stroke-width="6" fill="#4a7c59" fill-opacity="0.25"/>
+          <rect x="8" y="8" width="84" height="44" rx="7" stroke="#b08968" stroke-width="3" stroke-dasharray="6 3"/>
+          <rect x="13" y="13" width="74" height="34" rx="5" stroke="#52b788" stroke-width="2.5" fill="none"/>
+          <line x1="20" y1="3" x2="20" y2="13" stroke="#ddb892" stroke-width="2"/>
+          <line x1="50" y1="3" x2="50" y2="13" stroke="#ddb892" stroke-width="2"/>
+          <line x1="80" y1="3" x2="80" y2="13" stroke="#ddb892" stroke-width="2"/>
+          <line x1="3" y1="30" x2="13" y2="30" stroke="#ddb892" stroke-width="2"/>
+          <line x1="87" y1="30" x2="97" y2="30" stroke="#ddb892" stroke-width="2"/>
+          <circle cx="50" cy="30" r="4" fill="#ddb892" fill-opacity="0.8"/>
+        </svg>`;
+
+      case 'vacuole':
+        return `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="vacGrad" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#d0efff"/>
+              <stop offset="55%" stop-color="#90e0ef"/>
+              <stop offset="100%" stop-color="#48cae4"/>
+            </radialGradient>
+          </defs>
+          <path d="M60 6 C92 6 114 28 114 60 C114 94 90 114 60 114 C28 114 6 92 6 60 C6 28 28 6 60 6 Z" fill="url(#vacGrad)" stroke="#0096c7" stroke-width="3.5" opacity="0.95"/>
+          <ellipse cx="44" cy="36" rx="26" ry="14" fill="#ffffff" fill-opacity="0.4" transform="rotate(-18 44 36)"/>
+          <ellipse cx="78" cy="80" rx="14" ry="8" fill="#ffffff" fill-opacity="0.25"/>
+          <circle cx="70" cy="48" r="5" fill="#ffffff" fill-opacity="0.3"/>
+        </svg>`;
+
+      case 'chloro':
+        return `<svg viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="chloroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#52b788"/>
+              <stop offset="100%" stop-color="#2d6a4f"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="8" width="92" height="44" rx="22" fill="url(#chloroGrad)" stroke="#1b4332" stroke-width="3"/>
+          <rect x="8" y="12" width="84" height="36" rx="18" stroke="#74c69d" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>
+          <ellipse cx="28" cy="22" rx="9" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="28" cy="30" rx="9" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="28" cy="38" rx="9" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="50" cy="20" rx="10" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="50" cy="27" rx="10" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="50" cy="34" rx="10" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="50" cy="41" rx="10" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="72" cy="22" rx="9" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="72" cy="30" rx="9" ry="3.5" fill="#1b4332"/>
+          <ellipse cx="72" cy="38" rx="9" ry="3.5" fill="#1b4332"/>
+          <line x1="28" y1="30" x2="50" y2="27" stroke="#40916c" stroke-width="2"/>
+          <line x1="50" y1="34" x2="72" y2="30" stroke="#40916c" stroke-width="2"/>
+          <path d="M18 16 C30 11 70 11 82 16" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+        </svg>`;
+
+      case 'nucleus':
+        return `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="nucGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#b2ebf2"/>
+              <stop offset="65%" stop-color="#4dd0e1"/>
+              <stop offset="100%" stop-color="#00838f"/>
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="46" fill="url(#nucGrad)" stroke="#006064" stroke-width="3"/>
+          <circle cx="50" cy="50" r="42" stroke="#e0f7fa" stroke-width="1.5" stroke-dasharray="5 3"/>
+          <path d="M24 38 C32 26 44 42 62 30 C76 22 78 44 68 58 C60 68 74 76 56 82 C38 86 32 70 42 58 C28 62 18 48 24 38 Z" stroke="#004d40" stroke-width="2" fill="none" opacity="0.35"/>
+          <circle cx="50" cy="50" r="16" fill="#1a365d" stroke="#0f172a" stroke-width="2.5"/>
+          <circle cx="46" cy="46" r="3.5" fill="#ffffff" opacity="0.4"/>
+        </svg>`;
+
+      case 'mito':
+        return `<svg viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mitoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f28482"/>
+              <stop offset="100%" stop-color="#c85a42"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="8" width="92" height="44" rx="22" fill="url(#mitoGrad)" stroke="#8f3422" stroke-width="3"/>
+          <rect x="7" y="11" width="86" height="38" rx="19" stroke="#f7a399" stroke-width="1.5" fill="none"/>
+          <path d="M18 30 C24 30 24 16 32 16 C38 16 38 44 46 44 C54 44 54 16 62 16 C70 16 70 44 78 44 C84 44 84 30 88 30" stroke="#721d10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <ellipse cx="26" cy="38" rx="2" ry="1.5" fill="#fceade"/>
+          <ellipse cx="68" cy="22" rx="2" ry="1.5" fill="#fceade"/>
+        </svg>`;
+
+      case 'er_ribo':
+        return `<svg viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 18 C28 12 70 12 88 18 C82 24 64 22 46 25 C26 28 16 26 10 18 Z" fill="#f4d06f" stroke="#d4ac0d" stroke-width="2"/>
+          <path d="M14 30 C32 25 72 25 86 31 C78 37 58 35 40 38 C22 41 18 37 14 30 Z" fill="#f4d06f" stroke="#d4ac0d" stroke-width="2"/>
+          <path d="M20 42 C38 37 68 37 80 43 C72 49 52 48 38 50 C26 52 22 48 20 42 Z" fill="#f4d06f" stroke="#d4ac0d" stroke-width="2"/>
+          <circle cx="22" cy="15" r="2" fill="#78350f"/>
+          <circle cx="36" cy="14" r="2" fill="#78350f"/>
+          <circle cx="52" cy="14" r="2" fill="#78350f"/>
+          <circle cx="68" cy="15" r="2" fill="#78350f"/>
+          <circle cx="26" cy="27" r="2" fill="#78350f"/>
+          <circle cx="44" cy="26" r="2" fill="#78350f"/>
+          <circle cx="62" cy="26" r="2" fill="#78350f"/>
+          <circle cx="78" cy="28" r="2" fill="#78350f"/>
+          <circle cx="32" cy="39" r="2" fill="#78350f"/>
+          <circle cx="50" cy="39" r="2" fill="#78350f"/>
+          <circle cx="68" cy="40" r="2" fill="#78350f"/>
+        </svg>`;
+
+      case 'membrane':
+        return `<svg viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="10" width="92" height="40" rx="8" fill="#e07a5f" fill-opacity="0.15" stroke="#e07a5f" stroke-width="2"/>
+          <circle cx="12" cy="18" r="3.5" fill="#f4a261"/>
+          <circle cx="22" cy="18" r="3.5" fill="#f4a261"/>
+          <circle cx="32" cy="18" r="3.5" fill="#f4a261"/>
+          <circle cx="68" cy="18" r="3.5" fill="#f4a261"/>
+          <circle cx="78" cy="18" r="3.5" fill="#f4a261"/>
+          <circle cx="88" cy="18" r="3.5" fill="#f4a261"/>
+          <circle cx="12" cy="42" r="3.5" fill="#f4a261"/>
+          <circle cx="22" cy="42" r="3.5" fill="#f4a261"/>
+          <circle cx="32" cy="42" r="3.5" fill="#f4a261"/>
+          <circle cx="68" cy="42" r="3.5" fill="#f4a261"/>
+          <circle cx="78" cy="42" r="3.5" fill="#f4a261"/>
+          <circle cx="88" cy="42" r="3.5" fill="#f4a261"/>
+          <line x1="12" y1="21" x2="12" y2="38" stroke="#e76f51" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <line x1="22" y1="21" x2="22" y2="38" stroke="#e76f51" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <line x1="32" y1="21" x2="32" y2="38" stroke="#e76f51" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <line x1="68" y1="21" x2="68" y2="38" stroke="#e76f51" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <line x1="78" y1="21" x2="78" y2="38" stroke="#e76f51" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <line x1="88" y1="21" x2="88" y2="38" stroke="#e76f51" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <rect x="42" y="12" width="16" height="36" rx="4" fill="#2a9d8f" stroke="#264653" stroke-width="2"/>
+          <line x1="50" y1="12" x2="50" y2="48" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 3"/>
+        </svg>`;
+
+      case 'centri':
+        return `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(14, 10)">
+            <rect x="4" y="8" width="22" height="42" rx="4" fill="#2b4c7e" stroke="#1d3557" stroke-width="2"/>
+            <ellipse cx="15" cy="8" rx="11" ry="5" fill="#457b9d" stroke="#1d3557" stroke-width="1.5"/>
+            <line x1="10" y1="12" x2="10" y2="48" stroke="#a8dadc" stroke-width="1.5"/>
+            <line x1="15" y1="13" x2="15" y2="49" stroke="#a8dadc" stroke-width="1.5"/>
+            <line x1="20" y1="12" x2="20" y2="48" stroke="#a8dadc" stroke-width="1.5"/>
+          </g>
+          <g transform="translate(24, 34)">
+            <rect x="8" y="4" width="42" height="22" rx="4" fill="#1d3557" stroke="#0d1b2a" stroke-width="2"/>
+            <ellipse cx="8" cy="15" rx="5" ry="11" fill="#457b9d" stroke="#0d1b2a" stroke-width="1.5"/>
+            <line x1="12" y1="10" x2="48" y2="10" stroke="#a8dadc" stroke-width="1.5"/>
+            <line x1="13" y1="15" x2="49" y2="15" stroke="#a8dadc" stroke-width="1.5"/>
+            <line x1="12" y1="20" x2="48" y2="20" stroke="#a8dadc" stroke-width="1.5"/>
+          </g>
+          <line x1="8" y1="8" x2="20" y2="20" stroke="#457b9d" stroke-width="1.5" stroke-dasharray="2 2"/>
+          <line x1="72" y1="72" x2="60" y2="60" stroke="#457b9d" stroke-width="1.5" stroke-dasharray="2 2"/>
+        </svg>`;
+
+      case 'lyso':
+        return `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="lysoGrad" cx="35%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#b5838d"/>
+              <stop offset="70%" stop-color="#8338ec"/>
+              <stop offset="100%" stop-color="#3a0ca3"/>
+            </radialGradient>
+          </defs>
+          <circle cx="40" cy="40" r="35" fill="url(#lysoGrad)" stroke="#240046" stroke-width="3"/>
+          <circle cx="40" cy="40" r="31" stroke="#e0aaff" stroke-width="1.5" stroke-dasharray="3 2" fill="none"/>
+          <circle cx="30" cy="32" r="4.5" fill="#ffb703"/>
+          <circle cx="48" cy="28" r="3.5" fill="#fb8500"/>
+          <circle cx="42" cy="46" r="4" fill="#ffb703"/>
+          <circle cx="28" cy="48" r="3" fill="#fb8500"/>
+          <circle cx="52" cy="46" r="3" fill="#ffb703"/>
+          <ellipse cx="28" cy="22" rx="8" ry="4" fill="#ffffff" opacity="0.45" transform="rotate(-30 28 22)"/>
+        </svg>`;
+
+      default:
+        return `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="25" fill="#2ebfa5"/></svg>`;
+    }
+  }
+
   const ORGANELLES_DB = {
     wall: {
       id: 'wall',
       name: 'Cellulose Cell Wall',
-      icon: '🌿',
       type: 'plant',
       sub: 'Rigid protective cellulose barrier',
       badge: 'Plant Exclusive',
       badgeClass: 'plant',
-      question: "What is the vital biological role of the Cellulose Cell Wall?",
-      correct: "Provides tensile rigidity to withstand high turgor pressure and prevent osmotic lysis (bursting).",
+      question: "How does the Cellulose Cell Wall protect the plant cell?",
+      correct: "Acts as a tough rigid shield so water intake won't cause the cell to burst (lyse)!",
       distractors: [
         "Synthesizes lipid steroid hormones and breaks down glycogen.",
-        "Selects which RNA messages translate into ribosomes."
+        "Sorts mRNA transcripts for export to cytoplasmic ribosomes."
       ],
       collapseMsg: "Without a Cellulose Cell Wall, water influx caused hydrostatic pressure to exceed membrane tolerance, triggering explosive lysis!"
     },
     vacuole: {
       id: 'vacuole',
       name: 'Large Central Vacuole',
-      icon: '💧',
       type: 'plant',
       sub: 'Massive hydraulic turgor reservoir',
       badge: 'Plant Exclusive',
       badgeClass: 'plant',
-      question: "How does the Large Central Vacuole keep non-woody plants standing upright?",
-      correct: "Fills with cell sap to push outward against the cell wall, generating hydrostatic turgor pressure.",
+      question: "What is the biological superpower of the Central Vacuole?",
+      correct: "Stores cellular sap to exert outward turgor pressure that keeps stems and leaves upright!",
       distractors: [
-        "Pumps sodium and potassium ions to fire action potentials.",
-        "Replicates mitochondrial DNA during mitosis."
+        "Pumps sodium and potassium ions to fire neurological action potentials.",
+        "Replicates mitochondrial DNA during nuclear mitosis."
       ],
       collapseMsg: "Vacuole failure! Loss of osmotic regulation caused rapid cellular shriveling and plasmolysis."
     },
     chloro: {
       id: 'chloro',
       name: 'Chloroplasts',
-      icon: '☀️',
       type: 'plant',
       sub: 'Solar energy photosynthetic powerhouse',
       badge: 'Plant Exclusive',
       badgeClass: 'plant',
-      question: "What biochemical process takes place inside Chloroplasts?",
-      correct: "Uses chlorophyll to capture sunlight and convert carbon dioxide and water into glucose sugars.",
+      question: "What biochemical miracle takes place inside Chloroplasts?",
+      correct: "Uses chlorophyll to capture sunlight and convert water + CO₂ into glucose food and oxygen!",
       distractors: [
-        "Breaks down toxic cellular peroxides into water and oxygen.",
-        "Forms mitotic spindle fibers to segregate chromosomes."
+        "Breaks down toxic cellular peroxides into water and nitrogen gas.",
+        "Forms mitotic spindle fibers to segregate sister chromosomes."
       ],
       collapseMsg: "Metabolic blackout! Inability to synthesize carbohydrates starved the cell of vital chemical energy."
     },
     nucleus: {
       id: 'nucleus',
       name: 'Nucleus & Nucleolus',
-      icon: '🧬',
       type: 'both',
-      sub: 'Master genetic control command center',
+      sub: 'Master genetic control command vault',
       badge: 'Plant & Animal',
       badgeClass: 'both',
-      question: "What is stored and protected within the Eukaryotic Nucleus?",
-      correct: "Cellular DNA chromosomes that encode all protein synthesis and genetic instructions.",
+      question: "Why is the Nucleus hailed as the Master Control Vault?",
+      correct: "Safely archives the DNA genome chromosomes that direct all protein building and cell activities!",
       distractors: [
-        "Digestive proteases that dissolve engulfed pathogen bacteria.",
-        "ATP synthase pumps that phosphorylate ADP into ATP."
+        "Digestive proteases that dissolve engulfed bacterial pathogens.",
+        "ATP synthase molecular motors that generate osmotic gradients."
       ],
       collapseMsg: "Genetic breakdown! Without nuclear instructions, cellular enzymes ceased production."
     },
     mito: {
       id: 'mito',
       name: 'Mitochondria',
-      icon: '⚡',
       type: 'both',
-      sub: 'ATP cellular respiration power plant',
+      sub: 'ATP aerobic cellular powerhouse',
       badge: 'Plant & Animal',
       badgeClass: 'both',
-      question: "Why are Mitochondria known as the 'Powerhouses of the Cell'?",
-      correct: "They perform aerobic cellular respiration to generate ATP (adenosine triphosphate) energy packets.",
+      question: "Why are Mitochondria known as the Ultimate Powerhouses?",
+      correct: "Conducts cellular respiration to generate high-energy ATP sparks that fuel every living action!",
       distractors: [
-        "They synthesize cellulose fibrils to construct the outer wall.",
-        "They package secretory glycoproteins into vesicles."
+        "Synthesizes structural cellulose fibrils to build external wall coats.",
+        "Packages secretory hormones into export vesicles."
       ],
       collapseMsg: "Energy blackout! Without ATP synthesis, vital active transport pumps halted instantly."
     },
     er_ribo: {
       id: 'er_ribo',
-      name: 'ER & Ribosomes',
-      icon: '🧪',
+      name: 'Rough ER & Ribosomes',
       type: 'both',
-      sub: 'Protein synthesis and folding factories',
+      sub: 'Protein translation & folding factory',
       badge: 'Plant & Animal',
       badgeClass: 'both',
-      question: "What critical cellular product do Ribosomes assemble?",
-      correct: "They translate genetic mRNA code into peptide protein chains for enzymes and structural matrices.",
+      question: "What critical products do Ribosomes and the ER assemble?",
+      correct: "Translates genetic RNA code into peptide protein chains, enzymes, and structural matrices!",
       distractors: [
-        "They filter water molecules across the tonoplast membrane.",
-        "They absorb sunlight wavelengths to produce starch."
+        "Filters water molecules across the hydrostatic tonoplast envelope.",
+        "Absorbs solar photon rays to assemble insoluble starch."
       ],
       collapseMsg: "Peptide collapse! Complete depletion of structural enzymes caused membrane failure."
     },
     membrane: {
       id: 'membrane',
       name: 'Plasma Membrane',
-      icon: '🛡️',
       type: 'animal',
       sub: 'Flexible semi-permeable lipid bilayer',
       badge: 'Animal & Plant',
       badgeClass: 'animal',
-      question: "What is the primary function of the semi-permeable Plasma Membrane?",
-      correct: "Controls the selective exchange of nutrients, ions, and wastes between cytosol and external fluid.",
+      question: "What is the primary role of the flexible Plasma Membrane?",
+      correct: "Acts as an intelligent gatekeeper controlling nutrients, ions, and waste exchange!",
       distractors: [
-        "Stores chromosomes and transcribes ribosomal RNA.",
-        "Provides rigid mechanical resistance to prevent hydrostatic swelling."
+        "Stores chromosomes and transcribes transfer RNA nucleotides.",
+        "Provides immovable stone-like rigidity to stop any membrane flexing."
       ],
       collapseMsg: "Barrier breach! Unregulated ionic influx disrupted membrane potential."
     },
     centri: {
       id: 'centri',
       name: 'Centrioles & Centrosome',
-      icon: '🧭',
       type: 'animal',
       sub: 'Microtubule mitotic spindle organizers',
       badge: 'Animal Exclusive',
       badgeClass: 'animal',
       question: "When are Centrioles crucially mobilized in animal cells?",
-      correct: "During mitosis cell division to anchor and pull sister chromatid chromosomes apart.",
+      correct: "During mitosis cell division to anchor tow-cables that pull duplicate chromosomes apart!",
       distractors: [
-        "During darkness to oxidize glucose molecules into lactic acid.",
-        "During drought to store hydrostatic sap."
+        "During nighttime darkness to oxidize glucose molecules into lactic acid.",
+        "During droughts to store cubic liters of hydrostatic sap."
       ],
       collapseMsg: "Mitotic arrest! Chromosome separation apparatus failed."
     },
     lyso: {
       id: 'lyso',
       name: 'Lysosomes',
-      icon: '♻️',
       type: 'animal',
       sub: 'Hydrolytic digestive recycling center',
       badge: 'Animal Exclusive',
       badgeClass: 'animal',
-      question: "What enzymes are housed inside Lysosomes?",
-      correct: "Acid hydrolases that break down damaged organelles, macromolecules, and cellular debris.",
+      question: "How do Lysosomes keep the animal cell clean and healthy?",
+      correct: "Armed with digestive enzymes to recycle worn-out organelles and break down wastes!",
       distractors: [
-        "Photosynthetic chlorophyll pigments that emit fluorescence.",
-        "Cellulose synthase enzymes that weave cell walls."
+        "Flouresces photosynthetic green photons to recharge ATP levels.",
+        "Synthesizes tough outer cellulose armor for the cell."
       ],
       collapseMsg: "Toxic accumulation! Undigested waste compounds poisoned the cytoplasm."
     }
@@ -3147,20 +3371,20 @@ const ActivityCellBuilder = (function(){
 
   const SLOTS_CONFIG = {
     plant: [
-      { id: 'slot_wall', targetOrganelle: 'wall', label: 'Cellulose Wall', icon: '🌿', x: 50, y: 12 },
-      { id: 'slot_vacuole', targetOrganelle: 'vacuole', label: 'Central Vacuole', icon: '💧', x: 50, y: 50 },
-      { id: 'slot_chloro', targetOrganelle: 'chloro', label: 'Chloroplast', icon: '☀️', x: 25, y: 72 },
-      { id: 'slot_nucleus', targetOrganelle: 'nucleus', label: 'Nucleus', icon: '🧬', x: 24, y: 30 },
-      { id: 'slot_mito', targetOrganelle: 'mito', label: 'Mitochondria', icon: '⚡', x: 75, y: 32 },
-      { id: 'slot_er', targetOrganelle: 'er_ribo', label: 'ER & Ribosomes', icon: '🧪', x: 74, y: 72 }
+      { id: 'slot_wall', targetOrganelle: 'wall', label: 'Cellulose Wall', w: 130, h: 48, x: 50, y: 9, borderRadius: '12px' },
+      { id: 'slot_vacuole', targetOrganelle: 'vacuole', label: 'Central Vacuole', w: 180, h: 170, x: 63, y: 53, borderRadius: '50%' },
+      { id: 'slot_chloro', targetOrganelle: 'chloro', label: 'Chloroplast', w: 100, h: 56, x: 22, y: 68, borderRadius: '26px' },
+      { id: 'slot_nucleus', targetOrganelle: 'nucleus', label: 'Nucleus & Nucleolus', w: 110, h: 110, x: 27, y: 32, borderRadius: '50%' },
+      { id: 'slot_mito', targetOrganelle: 'mito', label: 'Mitochondria', w: 90, h: 52, x: 80, y: 26, borderRadius: '26px' },
+      { id: 'slot_er', targetOrganelle: 'er_ribo', label: 'ER & Ribosomes', w: 100, h: 56, x: 38, y: 85, borderRadius: '14px' }
     ],
     animal: [
-      { id: 'slot_membrane', targetOrganelle: 'membrane', label: 'Plasma Membrane', icon: '🛡️', x: 50, y: 14 },
-      { id: 'slot_nucleus', targetOrganelle: 'nucleus', label: 'Nucleus', icon: '🧬', x: 50, y: 50 },
-      { id: 'slot_mito', targetOrganelle: 'mito', label: 'Mitochondria', icon: '⚡', x: 26, y: 35 },
-      { id: 'slot_centri', targetOrganelle: 'centri', label: 'Centrosome', icon: '🧭', x: 74, y: 35 },
-      { id: 'slot_lyso', targetOrganelle: 'lyso', label: 'Lysosome', icon: '♻️', x: 28, y: 70 },
-      { id: 'slot_er', targetOrganelle: 'er_ribo', label: 'ER & Ribosomes', icon: '🧪', x: 72, y: 70 }
+      { id: 'slot_membrane', targetOrganelle: 'membrane', label: 'Plasma Membrane', w: 140, h: 48, x: 50, y: 9, borderRadius: '12px' },
+      { id: 'slot_nucleus', targetOrganelle: 'nucleus', label: 'Nucleus & Nucleolus', w: 120, h: 120, x: 46, y: 48, borderRadius: '50%' },
+      { id: 'slot_mito', targetOrganelle: 'mito', label: 'Mitochondria', w: 90, h: 52, x: 24, y: 72, borderRadius: '26px' },
+      { id: 'slot_centri', targetOrganelle: 'centri', label: 'Centrosome', w: 82, h: 72, x: 72, y: 28, borderRadius: '16px' },
+      { id: 'slot_lyso', targetOrganelle: 'lyso', label: 'Lysosomes', w: 72, h: 72, x: 74, y: 68, borderRadius: '50%' },
+      { id: 'slot_er', targetOrganelle: 'er_ribo', label: 'ER & Ribosomes', w: 100, h: 56, x: 25, y: 28, borderRadius: '14px' }
     ]
   };
 
@@ -3175,6 +3399,83 @@ const ActivityCellBuilder = (function(){
     }
     const totalReq = SLOTS_CONFIG[currentMode].length;
     if(cEl) cEl.textContent = `${dockedOrganelles.size} / ${totalReq}`;
+
+    // Real-Time Cellular Functioning Telemetry Rewards
+    const chipAtp = document.getElementById('chip-atp');
+    const valAtp = document.getElementById('val-chip-atp');
+    if(chipAtp && valAtp){
+      if(dockedOrganelles.has('mito')){
+        chipAtp.className = 'func-chip active gold';
+        valAtp.textContent = '+45 ATP/s (Aerobic)';
+      } else {
+        chipAtp.className = 'func-chip';
+        valAtp.textContent = 'Offline (0 ATP)';
+      }
+    }
+
+    const chipPhoto = document.getElementById('chip-photo');
+    const valPhoto = document.getElementById('val-chip-photo');
+    if(chipPhoto && valPhoto){
+      if(dockedOrganelles.has('chloro')){
+        chipPhoto.className = 'func-chip active green';
+        valPhoto.textContent = '+32 Glucose/s (Active O₂)';
+      } else if(currentMode === 'animal'){
+        chipPhoto.className = 'func-chip';
+        valPhoto.textContent = 'N/A (Heterotrophic)';
+      } else {
+        chipPhoto.className = 'func-chip';
+        valPhoto.textContent = 'Dormant (No Chlorophyll)';
+      }
+    }
+
+    const chipTurgor = document.getElementById('chip-turgor');
+    const valTurgor = document.getElementById('val-chip-turgor');
+    if(chipTurgor && valTurgor){
+      if(dockedOrganelles.has('vacuole')){
+        chipTurgor.className = 'func-chip active blue';
+        valTurgor.textContent = '1.2 MPa (Full Turgidity)';
+      } else if(currentMode === 'animal'){
+        chipTurgor.className = 'func-chip';
+        valTurgor.textContent = 'Isotonic (Equilibrium)';
+      } else {
+        chipTurgor.className = 'func-chip';
+        valTurgor.textContent = '0.1 MPa (Flaccid)';
+      }
+    }
+
+    const chipDna = document.getElementById('chip-dna');
+    const valDna = document.getElementById('val-chip-dna');
+    if(chipDna && valDna){
+      if(dockedOrganelles.has('nucleus')){
+        chipDna.className = 'func-chip active blue';
+        valDna.textContent = 'Active (mRNA Expressing)';
+      } else {
+        chipDna.className = 'func-chip';
+        valDna.textContent = 'Locked (No DNA)';
+      }
+    }
+
+    const chipWall = document.getElementById('chip-wall');
+    const valWall = document.getElementById('val-chip-wall');
+    if(chipWall && valWall){
+      if(currentMode === 'plant'){
+        if(dockedOrganelles.has('wall')){
+          chipWall.className = 'func-chip active green';
+          valWall.textContent = 'Reinforced (Lysis Immune)';
+        } else {
+          chipWall.className = 'func-chip';
+          valWall.textContent = 'High Osmotic Risk!';
+        }
+      } else {
+        if(dockedOrganelles.has('membrane')){
+          chipWall.className = 'func-chip active gold';
+          valWall.textContent = 'Fluid Mosaic Intact';
+        } else {
+          chipWall.className = 'func-chip';
+          valWall.textContent = 'Unprotected Cytosol';
+        }
+      }
+    }
   }
 
   function renderTray(){
@@ -3198,9 +3499,10 @@ const ActivityCellBuilder = (function(){
       card.draggable = !isDocked;
       card.dataset.id = k;
 
-      const bgCol = org.type === 'plant' ? 'rgba(46,204,113,0.18)' : (org.type === 'animal' ? 'rgba(230,161,59,0.18)' : 'rgba(56,217,169,0.18)');
+      const svgMarkup = getOrganelleSVG(k);
+
       card.innerHTML = `
-        <div class="organelle-icon-bubble" style="background:${bgCol};">${org.icon}</div>
+        <div class="organelle-icon-bubble">${svgMarkup}</div>
         <div class="organelle-info">
           <div class="organelle-name">${org.name}</div>
           <div class="organelle-sub">${org.sub}</div>
@@ -3239,18 +3541,23 @@ const ActivityCellBuilder = (function(){
       slotEl.className = `dock-slot ${isOccupied ? 'occupied ' + currentMode : ''}`;
       slotEl.style.left = `${s.x}%`;
       slotEl.style.top = `${s.y}%`;
+      slotEl.style.width = `${s.w}px`;
+      slotEl.style.height = `${s.h}px`;
+      if(s.borderRadius) slotEl.style.borderRadius = s.borderRadius;
       slotEl.dataset.slotId = s.id;
       slotEl.dataset.target = s.targetOrganelle;
 
       const org = ORGANELLES_DB[s.targetOrganelle];
+      const svgMarkup = getOrganelleSVG(s.targetOrganelle);
+
       if(isOccupied){
         slotEl.innerHTML = `
-          <div class="dock-slot-icon">${org.icon}</div>
+          <div class="dock-slot-svg">${svgMarkup}</div>
           <div class="dock-slot-label">${org.name.split(' ')[0]}</div>
         `;
       } else {
         slotEl.innerHTML = `
-          <div class="dock-slot-icon" style="opacity:0.4;">${s.icon}</div>
+          <div class="dock-slot-svg" style="opacity:0.35; filter:grayscale(0.6);">${svgMarkup}</div>
           <div class="dock-slot-label">${s.label}</div>
         `;
       }
@@ -3323,7 +3630,9 @@ const ActivityCellBuilder = (function(){
     const modal = document.getElementById('naming-challenge-modal');
     if(!org || !modal) return;
 
-    document.getElementById('naming-modal-icon').textContent = org.icon;
+    const modalIconHost = document.getElementById('naming-modal-icon');
+    if(modalIconHost) modalIconHost.innerHTML = getOrganelleSVG(organelleId);
+
     document.getElementById('naming-modal-name').textContent = org.name;
     document.getElementById('naming-modal-question').textContent = org.question;
 
@@ -3353,7 +3662,7 @@ const ActivityCellBuilder = (function(){
             renderChamber();
             updateStatsUI();
             checkCompletion();
-          }, 500);
+          }, 450);
         } else {
           btn.classList.add('wrong');
           btn.disabled = true;
