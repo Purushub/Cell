@@ -277,7 +277,7 @@ html, body {
 
 /* Active Specimen Top Header Banner */
 .active-specimen-banner {
-  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 68px; left: 50%; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   z-index: 25; pointer-events: none; text-align: center;
   background: rgba(7, 18, 16, 0.92); border: 2px solid var(--teal-prime);
@@ -332,6 +332,15 @@ html, body {
   padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
   color: var(--teal-prime); font-family: var(--font-mono);
 }
+.view-btn {
+  background: var(--bg-panel); border: 1px solid var(--border-bright);
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  color: var(--ink-light); cursor: pointer; transition: all 0.15s ease;
+}
+.view-btn:hover { background: var(--teal-prime); color: var(--ink-dark); }
+.view-btn.active { background: var(--teal-prime); color: var(--ink-dark); border-color: var(--teal-prime); }
+.view-btn.special { border-color: var(--amber); color: var(--amber); }
+.view-btn.special:hover { background: var(--amber); color: var(--ink-dark); }
 
 .tag-3d-host {
   position: absolute; inset: 0; pointer-events: none; z-index: 8; overflow: hidden;
@@ -766,16 +775,26 @@ html, body {
     <div class="activity-layout">
       <div class="canvas-viewport">
         <canvas id="tycoon-canvas"></canvas>
+        <div class="tag-3d-host" id="tycoon-tag-host"></div>
+
+        <!-- Specimen Lab Banner for Tycoon -->
+        <div class="active-specimen-banner plant-mode" id="tycoon-specimen-banner">
+          <div class="specimen-badge-title"><span>🌿</span><span>SPECIMEN: 3D PLANT CELL FACTORY (ALLIUM / MESOPHYLL)</span></div>
+          <span class="specimen-subtag">Autonomous Eukaryotic Plant Cell Lab · Large Vacuole, Cellulose Wall, Chloroplasts &amp; Mitochondria</span>
+        </div>
+
         <div class="viewport-toolbar">
-          <span class="view-tag" id="tycoon-type-label">3D PLANT POWER STATION</span>
+          <span class="view-tag" id="tycoon-type-label">🌿 3D PLANT CELL LAB</span>
           <span class="view-tag" id="tycoon-round-label">EVENT: ROUND 1 / 4</span>
+          <button class="view-btn active" id="btn-toggle-tycoon-labels">Hide 3D Labels</button>
+          <button class="view-btn" id="btn-reset-tycoon-cam">Reset View</button>
         </div>
       </div>
       <aside class="activity-sidebar">
         <div class="sidebar-card">
-          <span class="sub-tag">TYCOON SIMULATION</span>
+          <span class="sub-tag">STATION 2 · CELL LAB SIMULATOR</span>
           <h3>Cellular Factory Tycoon</h3>
-          <p>Maintain cellular homeostasis! Watch the live 3D factory respond and trigger organelle countermeasures.</p>
+          <p>Maintain cellular homeostasis in this live 3D Plant Cell! Balance energy (ATP), turgor pressure, wall integrity, and protein production.</p>
         </div>
         
         <div class="resource-grid">
@@ -1372,29 +1391,35 @@ const VoiceEngine = (function(){
     if(pool.length === 0) return null;
 
     // Check user assigned specific voice URI first
-    if(charConfigs[charKey].voiceURI){
+    if(charConfigs[charKey] && charConfigs[charKey].voiceURI){
       const assigned = pool.find(v => v.voiceURI === charConfigs[charKey].voiceURI);
       if(assigned) return assigned;
     }
 
     if(charKey === 'elena'){
-      const elenaPref = pool.find(v => /libby|sonia|jenny|natural.*female|samantha|victoria|karen|moira|en-gb|uk.*female/i.test(v.name));
+      const naturalElena = pool.find(v => /natural.*female|online.*female|sonia.*natural|jenny.*natural|libby.*natural|google.*uk/i.test(v.name));
+      if(naturalElena) return naturalElena;
+      const elenaPref = pool.find(v => /libby|sonia|jenny|samantha|victoria|karen|moira|en-gb|uk.*female/i.test(v.name));
       return elenaPref || pool.find(v => /female|woman/i.test(v.name)) || pool[0];
     } else if(charKey === 'zoe'){
+      const naturalZoe = pool.find(v => /natural.*female|online.*female|aria.*natural|ava.*natural|google.*us/i.test(v.name));
+      if(naturalZoe) return naturalZoe;
       const zoePref = pool.find(v => 
-        /aria|ava|michelle|tessa|zira|en-us.*female|natural.*female/i.test(v.name) && 
-        !/libby|sonia|moira|victoria/i.test(v.name)
+        /aria|ava|michelle|tessa|google/i.test(v.name) && 
+        !/libby|sonia|moira|victoria|zira|david/i.test(v.name)
       );
       if(zoePref) return zoePref;
-      const anyOtherFemale = pool.find(v => /female|woman|zira|aria/i.test(v.name));
-      return anyOtherFemale || pool[0];
+      const anyOtherFemale = pool.find(v => /female|woman|aria/i.test(v.name) && !/zira/i.test(v.name));
+      return anyOtherFemale || pool.find(v => !/david|mark/i.test(v.name)) || pool[0];
     } else if(charKey === 'kai'){
+      const naturalKai = pool.find(v => /natural.*male|online.*male|ryan.*natural|guy.*natural|google.*us/i.test(v.name));
+      if(naturalKai) return naturalKai;
       const youngMalePref = pool.find(v => 
-        /ryan|guy|mark|daniel|alex|steffan|christopher|eric|natural.*male|en-us.*male/i.test(v.name) && 
-        !/david|george|deep/i.test(v.name)
+        /ryan|guy|mark|daniel|alex|steffan|christopher|eric|google/i.test(v.name) && 
+        !/david|george|deep|zira/i.test(v.name)
       );
       if(youngMalePref) return youngMalePref;
-      const anyNonDavidMale = pool.find(v => (/male|man|alex|daniel/i.test(v.name)) && !/david/i.test(v.name));
+      const anyNonDavidMale = pool.find(v => (/male|man|alex|daniel/i.test(v.name)) && !/david|zira/i.test(v.name));
       return anyNonDavidMale || pool.find(v => /male|man/i.test(v.name)) || pool[0];
     }
 
@@ -1468,7 +1493,11 @@ const VoiceEngine = (function(){
 
   function playAudioUrl(url, charKey, fallbackText=''){
     if(currentAudio){
-      try { currentAudio.pause(); } catch(e){}
+      try {
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.pause();
+      } catch(e){}
       currentAudio = null;
     }
     const audio = new Audio(url);
@@ -1478,19 +1507,25 @@ const VoiceEngine = (function(){
       if(currentAudio === audio) currentAudio = null;
       setSpeakingState(false, charKey); 
     };
-    audio.onerror = ()=>{ 
-      if(currentAudio === audio) currentAudio = null;
-      setSpeakingState(false, charKey);
-      if(fallbackText){
-        speakFallback(fallbackText, charKey);
+    audio.onerror = (e)=>{ 
+      if(currentAudio === audio){
+        currentAudio = null;
+        setSpeakingState(false, charKey);
+        if(fallbackText){
+          speakFallback(fallbackText, charKey);
+        }
       }
     };
     const playPromise = audio.play();
     if(playPromise !== undefined){
       playPromise.catch((err)=>{
-        console.warn('Audio play was interrupted or blocked by autoplay policy:', err);
-        if(currentAudio === audio) currentAudio = null;
-        setSpeakingState(false, charKey);
+        if(err.name !== 'AbortError'){
+          console.warn('Audio playback notice:', err);
+        }
+        if(currentAudio === audio){
+          currentAudio = null;
+          setSpeakingState(false, charKey);
+        }
       });
     }
   }
@@ -1764,7 +1799,11 @@ const VoiceEngine = (function(){
     async speak(text, charKey='elena', audioClip=null){
       if(!enabled) return;
       if(currentAudio){ 
-        try { currentAudio.pause(); } catch(e){}
+        try {
+          currentAudio.onended = null;
+          currentAudio.onerror = null;
+          currentAudio.pause();
+        } catch(e){}
         currentAudio = null; 
       }
       if(synth) synth.cancel();
@@ -1774,24 +1813,29 @@ const VoiceEngine = (function(){
 
       const currentCfgVoice = (charConfigs[charKey] && charConfigs[charKey].elevenId) || DEFAULT_VOICES[charKey];
       const isDefaultVoice = (currentCfgVoice === DEFAULT_VOICES[charKey]);
+      const hasWorkingApiKey = !!(elevenApiKey && elevenApiKey.length > 10);
 
-      // 1. If an audio clip exists and character is on default ElevenLabs voice, play instant crisp pre-rendered audio
-      if(audioClip && isDefaultVoice){
+      // 1. If an audio clip exists and no active ElevenLabs API key is connected (or on default voice),
+      // ALWAYS prioritize the crisp, high-fidelity studio audio clip over mechanical speech synthesis!
+      if(audioClip && (!hasWorkingApiKey || isDefaultVoice)){
         playAudioUrl(audioClip, charKey, spokenText);
         return;
       }
 
-      // 2. Attempt ultra-realistic ElevenLabs neural voice
-      const success = await speakElevenLabs(spokenText, charKey);
-      if(!success){
-        // If an audio clip is available as backup, use it
-        if(audioClip){
-          playAudioUrl(audioClip, charKey, spokenText);
-        } else {
-          // 3. Seamlessly use character-tuned natural browser voice fallback
-          speakFallback(spokenText, charKey);
-        }
+      // 2. Attempt ultra-realistic ElevenLabs neural voice if active API key is provided
+      if(hasWorkingApiKey){
+        const success = await speakElevenLabs(spokenText, charKey);
+        if(success) return;
       }
+
+      // 3. If an audio clip is available as backup, use it rather than mechanical voice!
+      if(audioClip){
+        playAudioUrl(audioClip, charKey, spokenText);
+        return;
+      }
+
+      // 4. Seamlessly use character-tuned natural browser voice fallback
+      speakFallback(spokenText, charKey);
     }
   };
 })();
@@ -2087,6 +2131,21 @@ const VN = (function(){
     if(node.forest){ forestBg.classList.remove('dim'); }
     else { forestBg.classList.add('dim'); }
     syncVideoForNode(nodeId);
+
+    const navBadge = document.querySelector('.station-badge');
+    if(navBadge){
+      if(nodeId.startsWith('forest_intro')){
+        navBadge.textContent = 'IB SCIENCE · UNIT: CELLS';
+      } else if(nodeId === 'post_dissect'){
+        navBadge.textContent = 'STATION 2 · CELLULAR FACTORY TYCOON';
+      } else if(nodeId === 'post_tycoon'){
+        navBadge.textContent = 'STATION 3 · SPECIALISED CELLS RPG';
+      } else if(nodeId === 'post_rpg'){
+        navBadge.textContent = 'STATION 4 · 3D BODY HIERARCHY';
+      } else if(nodeId === 'post_hierarchy'){
+        navBadge.textContent = 'MODULE COMPLETED · BIOLOGY CERTIFICATE';
+      }
+    }
 
     fullText = node.text;
     textEl.innerHTML = '';
@@ -2758,7 +2817,6 @@ const ActivityDissection = (function(){
     document.getElementById('btn-finish-dissect').addEventListener('click', ()=>{
       AudioEngine.playSuccess();
       VN.react('happy');
-      VoiceEngine.speak("All essential organelles identified! Ready to submit findings to Dr. Vance.", 'zoe', 'assets/audio/quest_dissect_finish.mp3');
       document.getElementById('act-screen-dissection').classList.remove('active');
       VN.resume('post_dissect');
     });
@@ -2778,6 +2836,8 @@ const ActivityDissection = (function(){
     init(){
       document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
       document.getElementById('act-screen-dissection').classList.add('active');
+      const navBadge = document.querySelector('.station-badge');
+      if(navBadge) navBadge.textContent = 'STATION 1 · CELL DISSECTION LAB';
       if(!three) setupScene();
       else updateSpecimenHeader();
     }
@@ -2786,67 +2846,288 @@ const ActivityDissection = (function(){
 
 
 /* =========================================================================
-   7. ACTIVITY 2: 3D ANIMATED CELLULAR FACTORY TYCOON
+   7. ACTIVITY 2: 3D ANIMATED CELLULAR FACTORY TYCOON (PLANT CELL LAB)
    ========================================================================= */
 const ActivityTycoon = (function(){
   let three = null;
   let round = 0;
   let energy = 70, turgor = 80, struct = 90, protein = 60;
-  let vacuoleMesh = null, particleGroup = null;
+  let vacuoleMesh = null, wallMesh = null, chloroplastGroup = null, mitoGroup = null, erGroup = null, particleGroup = null, labPedestal = null;
+  let showTycoonLabels = true;
+  const tycoonTags = [];
 
   const EVENTS = [
     {
       title: "DROUGHT & LOW WATER POTENTIAL",
-      desc: "Water is leaving the cell by osmosis! Vacuole volume is shrinking rapidly.",
+      desc: "Water is leaving the plant cell by osmosis! Vacuole volume is shrinking and losing turgor pressure against the cellulose wall.",
       targetFix: "vacuole",
       effect: { energy: -10, turgor: +30, struct: +10, protein: 0 }
     },
     {
       title: "SOLAR ECLIPSE: LIGHT DEFICIT",
-      desc: "Photosynthesis stopped! Cellular ATP is depleting without light energy.",
+      desc: "Chloroplast photosynthesis stopped! Cellular ATP is depleting without light energy. Mitochondria must boost cellular respiration!",
       targetFix: "mito",
       effect: { energy: +35, turgor: -5, struct: 0, protein: +10 }
     },
     {
       title: "HIGH TURGOR PRESSURE SPIKE",
-      desc: "Sudden hypotonic flood of water! Cell is swelling towards maximum capacity.",
+      desc: "Sudden hypotonic flood of water! Cellulose cell wall must reinforce tensile microfibrils to prevent lysis.",
       targetFix: "wall",
       effect: { energy: -10, turgor: 0, struct: +35, protein: 0 }
     },
     {
       title: "PROTEIN MATRIX REPAIR ORDER",
-      desc: "Membrane transport channels need urgent peptide restoration.",
+      desc: "Cellular transport channels need urgent peptide restoration. Ribosomes & Endoplasmic Reticulum synthesis ordered!",
       targetFix: "er_ribo",
       effect: { energy: -15, turgor: 0, struct: +15, protein: +40 }
     }
   ];
 
-  function buildTycoon3DFactory(scene){
-    const wallGeo = createRoundedPrismGeometry(4.8, 3.8, 3.8, 0.65, 12);
-    const wallMesh = new THREE.Mesh(wallGeo, bioMat(0x1fa37c, { transparent: true, opacity: 0.14, side: THREE.DoubleSide }));
-    const wallEdges = new THREE.LineSegments(new THREE.EdgesGeometry(wallGeo, 22), new THREE.LineBasicMaterial({ color: 0x2ebfa5, linewidth: 2, transparent: true, opacity: 0.6 }));
+  function buildTycoonPlantCellLab(scene){
+    // 1. High-Tech Specimen Lab Stage / Pedestal
+    labPedestal = new THREE.Group();
+    labPedestal.position.set(0, -2.6, 0);
+
+    // Circular dark metallic bio-stage
+    const baseGeo = new THREE.CylinderGeometry(4.3, 4.6, 0.35, 48);
+    const baseMat = bioMat(0x0c1e19, { roughness: 0.3, metalness: 0.8 });
+    const basePlate = new THREE.Mesh(baseGeo, baseMat);
+    labPedestal.add(basePlate);
+
+    // Concentric glowing telemetry rings
+    const ringMat1 = new THREE.MeshBasicMaterial({ color: 0x2ebfa5, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+    const ring1 = new THREE.Mesh(new THREE.RingGeometry(3.6, 3.75, 48), ringMat1);
+    ring1.rotation.x = -Math.PI/2;
+    ring1.position.y = 0.19;
+    labPedestal.add(ring1);
+
+    const ringMat2 = new THREE.MeshBasicMaterial({ color: 0x27ae60, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+    const ring2 = new THREE.Mesh(new THREE.RingGeometry(4.0, 4.08, 48), ringMat2);
+    ring2.rotation.x = -Math.PI/2;
+    ring2.position.y = 0.19;
+    labPedestal.add(ring2);
+
+    // Grid disc
+    const gridDisc = new THREE.Mesh(new THREE.CircleGeometry(3.5, 36), new THREE.MeshBasicMaterial({ color: 0x051a14, transparent: true, opacity: 0.85 }));
+    gridDisc.rotation.x = -Math.PI/2;
+    gridDisc.position.y = 0.18;
+    labPedestal.add(gridDisc);
+
+    scene.add(labPedestal);
+
+    // 2. Thick Cellulose Plant Cell Wall (Rounded Prism Geometry)
+    const wallGeo = createRoundedPrismGeometry(5.2, 4.1, 4.0, 0.75, 14);
+    wallMesh = new THREE.Mesh(wallGeo, bioMat(0x1b7042, { transparent: true, opacity: 0.16, side: THREE.DoubleSide }));
+    
+    // Outer cellulose microfibril edge highlights
+    const wallEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(wallGeo, 24),
+      new THREE.LineBasicMaterial({ color: 0x2ecc71, linewidth: 2, transparent: true, opacity: 0.8 })
+    );
     wallMesh.add(wallEdges);
+
+    // Inner plasma membrane lining closely inside the cell wall
+    const memGeo = createRoundedPrismGeometry(4.85, 3.8, 3.7, 0.65, 14);
+    const memMesh = new THREE.Mesh(memGeo, bioMat(0x27ae60, { transparent: true, opacity: 0.12, side: THREE.DoubleSide }));
+    wallMesh.add(memMesh);
+
+    // Plasmodesmata pores (micro-channels connecting adjacent cells)
+    [[-2.6, 0, 0], [2.6, 0, 0], [0, 2.05, 0], [0, -2.05, 0], [0, 0, 2.0], [0, 0, -2.0]].forEach(pos=>{
+      const pore = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.35, 12), bioMat(0x55efc4, { emissive: 0x1abc9c }));
+      pore.position.set(...pos);
+      if(Math.abs(pos[0]) > 1) pore.rotation.z = Math.PI/2;
+      else if(Math.abs(pos[2]) > 1) pore.rotation.x = Math.PI/2;
+      wallMesh.add(pore);
+    });
+
     scene.add(wallMesh);
 
-    vacuoleMesh = new THREE.Mesh(new THREE.SphereGeometry(1.5, 28, 28), bioMat(0x3a82c4, { transparent: true, opacity: 0.45 }));
-    vacuoleMesh.position.set(0.1, -0.05, 0);
+    // 3. Dominant Central Vacuole (Key Plant Organelle storing cell sap & maintaining turgor)
+    const vacGeo = new THREE.SphereGeometry(1.6, 32, 28);
+    vacuoleMesh = new THREE.Mesh(vacGeo, bioMat(0x3498db, { 
+      transparent: true, 
+      opacity: 0.52, 
+      roughness: 0.15, 
+      metalness: 0.1,
+      emissive: 0x092b47
+    }));
+    vacuoleMesh.scale.set(1.25, 0.95, 1.05);
+    vacuoleMesh.position.set(0.15, -0.1, 0.1);
     scene.add(vacuoleMesh);
 
-    const mitoGroup = new THREE.Group();
-    [[0.9, -1.3, 1.0], [-0.7, 0.5, -1.4], [1.5, 0.4, -1.2]].forEach(p=>{
-      const m = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 14), bioMat(0xe6a13b));
-      m.scale.set(1.7, 0.8, 0.8); m.position.set(...p);
+    // 4. Peripheral Plant Nucleus & Nucleolus (Displaced by the large central vacuole)
+    const nucleusGroup = new THREE.Group();
+    nucleusGroup.position.set(-1.6, 0.85, -0.6);
+    
+    // Nuclear envelope
+    const nucMesh = new THREE.Mesh(new THREE.SphereGeometry(0.65, 24, 24), bioMat(0x8e44ad, { 
+      transparent: true, 
+      opacity: 0.85, 
+      roughness: 0.3,
+      emissive: 0x2c103e
+    }));
+    nucleusGroup.add(nucMesh);
+
+    // Dense Nucleolus (Ribosome synthesis center)
+    const nucleolus = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), bioMat(0xe056fd, { emissive: 0x6c0ba9 }));
+    nucleolus.position.set(0.08, 0.08, 0.08);
+    nucleusGroup.add(nucleolus);
+
+    // Nuclear pores
+    for(let i=0; i<16; i++){
+      const np = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), bioMat(0x9b59b6));
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 0.65;
+      np.position.set(r*Math.sin(phi)*Math.cos(theta), r*Math.sin(phi)*Math.sin(theta), r*Math.cos(phi));
+      nucleusGroup.add(np);
+    }
+    scene.add(nucleusGroup);
+
+    // 5. Chloroplasts (5 distinct emerald oval discs with internal thylakoid grana stacks)
+    chloroplastGroup = new THREE.Group();
+    const chloroPositions = [
+      { pos: [-1.65, -0.9, 0.85], rot: [0.3, 0.6, 0.2] },
+      { pos: [1.6, 0.95, 0.65], rot: [-0.4, 0.8, -0.3] },
+      { pos: [-0.85, 1.25, 1.1], rot: [0.5, -0.3, 0.4] },
+      { pos: [1.7, -0.75, -0.8], rot: [0.2, -0.7, 0.5] },
+      { pos: [0.15, 1.35, -1.0], rot: [-0.6, 0.2, -0.4] }
+    ];
+
+    chloroPositions.forEach(cp=>{
+      const cMesh = new THREE.Group();
+      cMesh.position.set(...cp.pos);
+      cMesh.rotation.set(...cp.rot);
+
+      // Outer chloroplast membrane
+      const outerBody = new THREE.Mesh(new THREE.SphereGeometry(0.44, 20, 16), bioMat(0x00b894, {
+        transparent: true,
+        opacity: 0.88,
+        roughness: 0.25,
+        emissive: 0x004736
+      }));
+      outerBody.scale.set(1.4, 0.55, 0.85);
+      cMesh.add(outerBody);
+
+      // Internal Thylakoid Grana Discs
+      for(let g=-2; g<=2; g++){
+        const granum = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.18, 12), bioMat(0x27ae60, { emissive: 0x0e5828 }));
+        granum.position.set(g * 0.14, 0, 0);
+        granum.rotation.z = Math.PI/2;
+        cMesh.add(granum);
+      }
+      chloroplastGroup.add(cMesh);
+    });
+    scene.add(chloroplastGroup);
+
+    // 6. Mitochondria (4 Golden oval respiration centers)
+    mitoGroup = new THREE.Group();
+    const mitoCoords = [
+      { pos: [0.95, -1.25, 1.05], rot: [0.2, 0.5, 0.3] },
+      { pos: [-0.95, -1.2, -1.1], rot: [-0.4, 0.3, 0.6] },
+      { pos: [1.6, 0.45, -1.15], rot: [0.5, -0.6, 0.2] },
+      { pos: [-1.8, 0.15, 0.9], rot: [0.1, 0.8, -0.4] }
+    ];
+    mitoCoords.forEach(mc=>{
+      const m = new THREE.Group();
+      m.position.set(...mc.pos);
+      m.rotation.set(...mc.rot);
+
+      const mBody = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), bioMat(0xf39c12, { emissive: 0x6e3c02 }));
+      mBody.scale.set(1.65, 0.72, 0.72);
+      m.add(mBody);
+
+      // Inner cristae ridges
+      for(let c=-2; c<=2; c++){
+        const fold = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), bioMat(0xf1c40f));
+        fold.position.x = c * 0.12;
+        fold.rotation.y = Math.PI/2;
+        m.add(fold);
+      }
       mitoGroup.add(m);
     });
     scene.add(mitoGroup);
 
+    // 7. Endoplasmic Reticulum & Ribosome Granules
+    erGroup = new THREE.Group();
+    erGroup.position.set(-1.6, 0.85, -0.6); // Wraps around nucleus
+    for(let r=0; r<3; r++){
+      const arc = new THREE.Mesh(
+        new THREE.TorusGeometry(0.85 + r*0.16, 0.055, 8, 24, Math.PI * 1.3),
+        bioMat(0x34495e, { emissive: 0x1b2631 })
+      );
+      arc.rotation.x = Math.PI/3 + r*0.2;
+      arc.rotation.y = r*0.3;
+      erGroup.add(arc);
+    }
+    scene.add(erGroup);
+
+    // 8. Multi-Class Animated Metabolic Particles (Water, ATP, Protein)
     particleGroup = new THREE.Group();
-    for(let i=0; i<30; i++){
-      const p = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshBasicMaterial({ color: 0xe6a13b }));
-      p.position.set((Math.random()-0.5)*3.6, (Math.random()-0.5)*2.8, (Math.random()-0.5)*2.8);
+    for(let i=0; i<45; i++){
+      let pCol = 0x3498db; // Water by default
+      const rnd = Math.random();
+      if(rnd < 0.35) pCol = 0x3498db; // Water / Osmosis
+      else if(rnd < 0.70) pCol = 0xf1c40f; // ATP energy packet
+      else pCol = 0x9b59b6; // Protein / Peptide
+
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), new THREE.MeshBasicMaterial({ color: pCol, transparent: true, opacity: 0.85 }));
+      p.position.set((Math.random()-0.5)*4.2, (Math.random()-0.5)*3.2, (Math.random()-0.5)*3.2);
+      p.userData = {
+        speedY: 0.008 + Math.random()*0.014,
+        speedX: (Math.random()-0.5)*0.006,
+        type: pCol === 0x3498db ? 'water' : (pCol === 0xf1c40f ? 'atp' : 'protein')
+      };
       particleGroup.add(p);
     }
     scene.add(particleGroup);
+
+    // 9. Floating 3D Organelle Pin-Labels
+    setupTycoon3DLabels();
+  }
+
+  function setupTycoon3DLabels(){
+    const host = document.getElementById('tycoon-tag-host');
+    if(!host) return;
+    host.innerHTML = '';
+    tycoonTags.length = 0;
+
+    const labelDefs = [
+      { text: "🌿 Cellulose Cell Wall", pos: new THREE.Vector3(2.5, 1.4, 1.6), desc: "Rigid tensile barrier resisting osmotic lysis" },
+      { text: "💧 Large Central Vacuole", pos: new THREE.Vector3(0.2, -0.2, 1.4), desc: "Stores cell sap & creates hydrostatic turgor pressure" },
+      { text: "☀️ Chloroplast (Photosynthesis)", pos: new THREE.Vector3(-1.65, -0.9, 1.0), desc: "Contains chlorophyll & thylakoids converting sunlight into glucose" },
+      { text: "🧬 Nucleus & Nucleolus", pos: new THREE.Vector3(-1.6, 1.2, -0.4), desc: "Stores genetic DNA & synthesizes ribosomes" },
+      { text: "⚡ Mitochondrion (ATP)", pos: new THREE.Vector3(0.95, -1.3, 1.2), desc: "Performs cellular respiration generating ATP" }
+    ];
+
+    labelDefs.forEach(def=>{
+      const el = document.createElement('div');
+      el.className = 'organelle-tag-label';
+      el.innerHTML = `<span>${def.text}</span>`;
+      el.title = def.desc;
+      host.appendChild(el);
+      tycoonTags.push({ el, worldPos: def.pos });
+    });
+  }
+
+  function updateTycoonFloatingTags(){
+    if(!showTycoonLabels || !three || !three.camera){
+      tycoonTags.forEach(t=>{ t.el.style.display = 'none'; });
+      return;
+    }
+
+    tycoonTags.forEach(t=>{
+      const p = three.projectToScreen(t.worldPos);
+      if(p.z > 1.0){
+        t.el.style.display = 'none';
+      } else {
+        t.el.style.display = 'block';
+        t.el.style.left = `${Math.round(p.x)}px`;
+        t.el.style.top = `${Math.round(p.y)}px`;
+      }
+    });
   }
 
   function updateMeters(){
@@ -2859,9 +3140,21 @@ const ActivityTycoon = (function(){
     document.getElementById('meter-val-protein').textContent = protein + '%';
     document.getElementById('bar-fill-protein').style.width = protein + '%';
 
+    // Dynamic real-time response of 3D Vacuole to turgor pressure!
     if(vacuoleMesh){
-      const scale = 0.6 + (turgor/100)*0.5;
-      vacuoleMesh.scale.set(scale, scale, scale);
+      const scale = 0.65 + (turgor/100)*0.55;
+      vacuoleMesh.scale.set(1.25 * scale, 0.95 * scale, 1.05 * scale);
+      // If turgor drops below 50%, vacuole turns dehydrated violet-blue
+      if(turgor < 50){
+        vacuoleMesh.material.color.setHex(0x5c7080);
+      } else {
+        vacuoleMesh.material.color.setHex(0x3498db);
+      }
+    }
+
+    // Dynamic reaction of Cell Wall to structural integrity
+    if(wallMesh && wallMesh.children[0]){
+      wallMesh.children[0].material.color.setHex(struct < 60 ? 0xe74c3c : 0x2ecc71);
     }
   }
 
@@ -2881,7 +3174,7 @@ const ActivityTycoon = (function(){
     document.getElementById('tycoon-event-desc').textContent = cur.desc;
 
     // Kai Cruz speaks the emergency event challenge
-    VoiceEngine.speak(`Emergency event: ${cur.title}. ${cur.desc} Select the correct organelle countermeasure to restore homeostasis!`, 'kai');
+    VoiceEngine.speak(`Emergency event: ${cur.title}. ${cur.desc} Select the correct organelle countermeasure to restore plant cell homeostasis!`, 'kai');
 
     const host = document.getElementById('tycoon-actions-host');
     host.innerHTML = `
@@ -2907,8 +3200,8 @@ const ActivityTycoon = (function(){
           btn.style.color = 'var(--ink-dark)';
           host.querySelectorAll('button').forEach(b=>b.disabled=true);
           
-          document.getElementById('tycoon-event-desc').textContent = 'Countermeasure Success! Homeostasis stabilized.';
-          VoiceEngine.speak("Countermeasure success! Homeostasis stabilized.", 'kai');
+          document.getElementById('tycoon-event-desc').textContent = 'Countermeasure Success! Plant cell homeostasis stabilized.';
+          VoiceEngine.speak("Countermeasure success! Plant cell homeostasis stabilized.", 'kai');
           document.getElementById('btn-next-tycoon-round').style.display = 'flex';
         } else {
           AudioEngine.playWarning();
@@ -2928,7 +3221,30 @@ const ActivityTycoon = (function(){
   function setupScene(){
     const canvas = document.getElementById('tycoon-canvas');
     three = setupThreeRig(canvas);
-    buildTycoon3DFactory(three.scene);
+    three.camera.position.set(0, 1.5, 7.8);
+    three.orbit.target.set(0, 0, 0);
+
+    buildTycoonPlantCellLab(three.scene);
+
+    const toggleLabelsBtn = document.getElementById('btn-toggle-tycoon-labels');
+    if(toggleLabelsBtn){
+      toggleLabelsBtn.onclick = ()=>{
+        showTycoonLabels = !showTycoonLabels;
+        toggleLabelsBtn.textContent = showTycoonLabels ? 'Hide 3D Labels' : 'Show 3D Labels';
+        toggleLabelsBtn.classList.toggle('active', showTycoonLabels);
+        AudioEngine.playClick();
+        updateTycoonFloatingTags();
+      };
+    }
+
+    const resetCamBtn = document.getElementById('btn-reset-tycoon-cam');
+    if(resetCamBtn){
+      resetCamBtn.onclick = ()=>{
+        three.camera.position.set(0, 1.5, 7.8);
+        three.orbit.target.set(0, 0, 0);
+        AudioEngine.playClick();
+      };
+    }
 
     function loop(){
       requestAnimationFrame(loop);
@@ -2936,13 +3252,32 @@ const ActivityTycoon = (function(){
       three.resize();
       three.updateCamera();
 
-      if(particleGroup){
-        particleGroup.children.forEach(p=>{
-          p.position.y += 0.015;
-          if(p.position.y > 1.8) p.position.y = -1.8;
+      // Gentle lab stage telemetry rotation
+      if(labPedestal){
+        labPedestal.children[1].rotation.z += 0.005; // Outer ring
+        labPedestal.children[2].rotation.z -= 0.003; // Inner ring
+      }
+
+      // Chloroplasts slow photosynthesis pulsation
+      if(chloroplastGroup){
+        chloroplastGroup.children.forEach((c)=>{
+          c.rotation.y += 0.004;
         });
       }
+
+      // Metabolic particle motion
+      if(particleGroup){
+        particleGroup.children.forEach(p=>{
+          p.position.y += p.userData.speedY;
+          p.position.x += p.userData.speedX;
+          if(p.position.y > 2.0) p.position.y = -2.0;
+          if(p.position.x > 2.5) p.position.x = -2.5;
+          if(p.position.x < -2.5) p.position.x = 2.5;
+        });
+      }
+
       three.renderer.render(three.scene, three.camera);
+      updateTycoonFloatingTags();
     }
     loop();
   }
@@ -2951,6 +3286,8 @@ const ActivityTycoon = (function(){
     init(){
       document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
       document.getElementById('act-screen-tycoon').classList.add('active');
+      const navBadge = document.querySelector('.station-badge');
+      if(navBadge) navBadge.textContent = 'STATION 2 · CELLULAR FACTORY TYCOON (PLANT CELL LAB)';
       if(!three) setupScene();
       round = 0; energy = 70; turgor = 80; struct = 90; protein = 60;
       updateMeters();
@@ -3201,6 +3538,8 @@ const ActivityRPG = (function(){
     init(){
       document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
       document.getElementById('act-screen-rpg').classList.add('active');
+      const navBadge = document.querySelector('.station-badge');
+      if(navBadge) navBadge.textContent = 'STATION 3 · SPECIALISED CELLS RPG';
       currentMissionIdx = 0;
       setupMission();
     }
@@ -3886,6 +4225,8 @@ const ActivityHierarchy = (function(){
     init(){
       document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
       document.getElementById('act-screen-hierarchy').classList.add('active');
+      const navBadge = document.querySelector('.station-badge');
+      if(navBadge) navBadge.textContent = 'STATION 4 · 3D BODY HIERARCHY';
       if(!three) setupScene();
       else applyLevel(activeLevel);
     }
@@ -4135,6 +4476,8 @@ const ActivityCertificate = (function(){
     init(){
       document.querySelectorAll('.activity-screen').forEach(s=>s.classList.remove('active'));
       document.getElementById('act-screen-certificate').classList.add('active');
+      const navBadge = document.querySelector('.station-badge');
+      if(navBadge) navBadge.textContent = 'MODULE COMPLETED · BIOLOGY CERTIFICATE';
       AudioEngine.playSuccess();
       VoiceEngine.speak("Congratulations Research Cadet! You have mastered all foundational IB Science modules. Customize your name and download your official distinction certificate.", 'elena', 'assets/audio/quest_cert_congrats.mp3');
 
