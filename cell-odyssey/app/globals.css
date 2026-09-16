@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ==========================================================================
+   CSS Custom Properties (Theme Design Tokens)
+   ========================================================================== */
+
+:root,
+[data-theme="playful"] {
+  /* Playful Bright Mode Tokens */
+  --bg-page: #f8fafc;
+  --bg-gradient: radial-gradient(circle at 10% 20%, #fef3c7 0%, #f0fdf4 40%, #e0f2fe 90%);
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-input: #f8fafc;
+  
+  --border-subtle: #e2e8f0;
+  --border-card: #cbd5e1;
+  --border-focus: #3b82f6;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  --accent-primary: #8b5cf6;       /* Bubblegum Purple */
+  --accent-primary-hover: #7c3aed;
+  --accent-secondary: #06b6d4;     /* Playful Cyan */
+  --accent-success: #10b981;       /* Mint Green */
+  --accent-warning: #f59e0b;       /* Sunny Amber */
+  --accent-danger: #f43f5e;        /* Strawberry Pink */
+  --accent-glow: rgba(139, 92, 246, 0.25);
+
+  --team1-color: #2563eb;          /* Royal Team Blue */
+  --team1-bg: #eff6ff;
+  --team1-border: #93c5fd;
+
+  --team2-color: #ea580c;          /* Flame Team Orange */
+  --team2-bg: #fff7ed;
+  --team2-border: #fdba74;
+
+  --card-shadow: 0 10px 25px -5px rgba(100, 116, 139, 0.12), 0 8px 10px -6px rgba(100, 116, 139, 0.08);
+  --card-shadow-hover: 0 20px 30px -10px rgba(99, 102, 241, 0.2);
+  --buzzer-shadow: 0 12px 28px -4px rgba(244, 63, 94, 0.4);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --hud-overlay: none;
+}
+
+[data-theme="cyberpunk"] {
+  /* Dark Sci-Fi Cyberpunk Tokens */
+  --bg-page: #070b14;
+  --bg-gradient: radial-gradient(circle at 50% 20%, #0d1527 0%, #070b14 60%, #030712 100%);
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #1e293b;
+  --bg-card: rgba(15, 23, 42, 0.85);
+  --bg-card-hover: rgba(30, 41, 59, 0.95);
+  --bg-input: #0b1120;
+
+  --border-subtle: rgba(56, 189, 248, 0.15);
+  --border-card: rgba(56, 189, 248, 0.35);
+  --border-focus: #00f0ff;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f172a;
+
+  --accent-primary: #00f0ff;       /* Neon Cyan */
+  --accent-primary-hover: #38bdf8;
+  --accent-secondary: #d946ef;     /* Cyber Pink */
+  --accent-success: #00ff9d;       /* Matrix Green */
+  --accent-warning: #fbbf24;       /* Neon Gold */
+  --accent-danger: #ff0055;        /* Laser Red */
+  --accent-glow: 0 0 20px rgba(0, 240, 255, 0.45);
+
+  --team1-color: #00f0ff;
+  --team1-bg: rgba(0, 240, 255, 0.08);
+  --team1-border: rgba(0, 240, 255, 0.5);
+
+  --team2-color: #ff007f;
+  --team2-bg: rgba(255, 0, 127, 0.08);
+  --team2-border: rgba(255, 0, 127, 0.5);
+
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --card-shadow-hover: 0 0 30px rgba(0, 240, 255, 0.25), inset 0 0 0 1px var(--border-focus);
+  --buzzer-shadow: 0 0 35px rgba(255, 0, 85, 0.6);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --hud-overlay: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+}
+
+/* ==========================================================================
+   Global Reset & Base Layout
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100vh;
+  font-family: var(--font-main);
+  background-color: var(--bg-page);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  transition: background 0.35s ease, color 0.25s ease;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Utility Classes & Interactive Components
+   ========================================================================== */
+
+.page-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* Split-Screen Battle Arena Responsive Layout */
+.arena-grid-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr 340px;
+  gap: 16px;
+  padding: 16px 20px 24px;
+  align-items: stretch;
+  min-height: calc(100vh - 120px);
+}
+
+@media (max-width: 1200px) {
+  .arena-grid-layout {
+    grid-template-columns: 300px 1fr 300px;
+    gap: 12px;
+    padding: 12px 14px 20px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .arena-grid-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .arena-center-col {
+    grid-column: 1 / -1;
+    order: -1;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .arena-grid-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 10px 12px 24px;
+  }
+  .arena-center-col {
+    min-height: 320px;
+  }
+}
+
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--font-main);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border-card);
+}
+
+.btn-outline:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-card-hover);
+}
+
+.btn-team1 {
+  background: var(--team1-color);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+
+.btn-team2 {
+  background: var(--team2-color);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.35);
+}
+
+/* Buzzer Big Push Pad */
+.buzzer-pad {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  user-select: none;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
+  box-shadow: var(--buzzer-shadow);
+}
+
+.buzzer-pad:active {
+  transform: scale(0.92) translateY(4px);
+}
+
+.buzzer-pad.buzzer-team1 {
+  background: radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8);
+}
+
+.buzzer-pad.buzzer-team2 {
+  background: radial-gradient(circle at 35% 35%, #fb923c, #c2410c);
+}
+
+.buzzer-pad.locked {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-playful {
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.badge-cyber {
+  background: rgba(0, 240, 255, 0.15);
+  color: #00f0ff;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px var(--accent-glow);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 28px var(--accent-glow);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+
+@keyframes floatAnim {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: floatAnim 3s infinite ease-in-out;
+}
